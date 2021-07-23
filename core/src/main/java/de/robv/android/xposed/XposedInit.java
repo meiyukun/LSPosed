@@ -46,6 +46,7 @@ import android.util.Log;
 
 import org.lsposed.lspd.nativebridge.NativeAPI;
 import org.lsposed.lspd.nativebridge.ResourcesHook;
+import org.lsposed.lspd.util.LspModuleClassLoader;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -59,7 +60,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import dalvik.system.DelegateLastClassLoader;
 import de.robv.android.xposed.callbacks.XC_InitPackageResources;
 import de.robv.android.xposed.callbacks.XC_InitZygote;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
@@ -367,14 +367,13 @@ public final class XposedInit {
             return false;
         }
 
-        // module can load it's own so
-        StringBuilder nativePath = new StringBuilder();
-        for (String i : Build.SUPPORTED_ABIS) {
-            nativePath.append(apk).append("!/lib/").append(i).append(File.pathSeparator);
+        var librarySearchPath = new StringBuilder();
+        var abis = Process.is64Bit() ? Build.SUPPORTED_64_BIT_ABIS : Build.SUPPORTED_32_BIT_ABIS;
+        for (String abi : abis) {
+            librarySearchPath.append(apk).append("!/lib/").append(abi).append(File.pathSeparator);
         }
-        // Log.d(TAG, "Allowed native path" + nativePath.toString());
         ClassLoader initLoader = XposedInit.class.getClassLoader();
-        ClassLoader mcl = new DelegateLastClassLoader(apk, nativePath.toString(), initLoader);
+        ClassLoader mcl = LspModuleClassLoader.loadApk(new File(apk), librarySearchPath.toString(), initLoader);
 
         try {
             if (mcl.loadClass(XposedBridge.class.getName()).getClassLoader() != initLoader) {

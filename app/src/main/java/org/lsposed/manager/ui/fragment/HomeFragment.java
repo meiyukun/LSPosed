@@ -19,6 +19,8 @@
 
 package org.lsposed.manager.ui.fragment;
 
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
@@ -32,6 +34,7 @@ import androidx.core.text.HtmlCompat;
 import com.bumptech.glide.Glide;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.lsposed.manager.App;
 import org.lsposed.manager.BuildConfig;
 import org.lsposed.manager.ConfigManager;
 import org.lsposed.manager.R;
@@ -41,7 +44,6 @@ import org.lsposed.manager.databinding.FragmentMainBinding;
 import org.lsposed.manager.ui.activity.base.BaseActivity;
 import org.lsposed.manager.ui.dialog.BlurBehindDialogBuilder;
 import org.lsposed.manager.ui.dialog.InfoDialogBuilder;
-import org.lsposed.manager.util.GlideHelper;
 import org.lsposed.manager.util.ModuleUtil;
 import org.lsposed.manager.util.NavUtil;
 import org.lsposed.manager.util.chrome.LinkTransformationMethod;
@@ -54,6 +56,16 @@ public class HomeFragment extends BaseFragment {
 
     private FragmentHomeBinding binding;
     private View snackbar;
+
+    private static PackageInfo wrap(ApplicationInfo applicationInfo, int longVersionCode) {
+        PackageInfo packageInfo = new PackageInfo();
+        packageInfo.applicationInfo = applicationInfo;
+        packageInfo.versionCode = longVersionCode;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageInfo.setLongVersionCode(System.currentTimeMillis());
+        }
+        return packageInfo;
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -92,13 +104,13 @@ public class HomeFragment extends BaseFragment {
             binding.translators.setMovementMethod(LinkMovementMethod.getInstance());
             binding.translators.setTransformationMethod(new LinkTransformationMethod(activity));
             binding.translators.setText(HtmlCompat.fromHtml(getString(R.string.about_translators, getString(R.string.translators)), HtmlCompat.FROM_HTML_MODE_LEGACY));
-            binding.version.setText(String.format(Locale.US, "%s (%s)", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE));
+            binding.version.setText(String.format(Locale.US, "LSPosed %s (%s)", BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE));
             new BlurBehindDialogBuilder(activity)
                     .setView(binding.getRoot())
                     .show();
         });
         Glide.with(binding.appIcon)
-                .load(GlideHelper.wrapApplicationInfoForIconLoader(activity.getApplicationInfo()))
+                .load(wrap(activity.getApplicationInfo(), getResources().getConfiguration().hashCode()))
                 .into(binding.appIcon);
         String installXposedVersion = ConfigManager.getXposedVersionName();
         int cardBackgroundColor;
@@ -118,6 +130,11 @@ public class HomeFragment extends BaseFragment {
                 cardBackgroundColor = ResourcesKt.resolveColor(activity.getTheme(), R.attr.colorWarning);
                 binding.statusIcon.setImageResource(R.drawable.ic_warning);
                 binding.statusSummary.setText(R.string.system_prop_incorrect_summary);
+            } else if (App.needUpdate()) {
+                binding.statusTitle.setText(R.string.need_update);
+                cardBackgroundColor = ResourcesKt.resolveColor(activity.getTheme(), R.attr.colorWarning);
+                binding.statusIcon.setImageResource(R.drawable.ic_warning);
+                binding.statusSummary.setText(R.string.please_update_summary);
             } else {
                 binding.statusTitle.setText(R.string.activated);
                 cardBackgroundColor = ResourcesKt.resolveColor(activity.getTheme(), R.attr.colorNormal);
