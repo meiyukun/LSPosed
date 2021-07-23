@@ -66,7 +66,7 @@ public final class XposedBridge {
     /**
      * @hide
      */
-    public static final String TAG = "LSPosed-Bridge";
+    public static final String TAG = "LSPosed-Bridge-BugHook";
 
     /**
      * @deprecated Use {@link #getXposedVersion()} instead.
