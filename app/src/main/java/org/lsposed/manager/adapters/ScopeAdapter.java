@@ -182,7 +182,40 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
         }
         return preferences.getBoolean("filter_system_apps", true) && (info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
     }
-
+    private void sortAppsPackageInfo(List<PackageInfo> list){
+        Comparator<PackageInfo> comparator = AppHelper.getAppListComparator(preferences.getInt("list_sort", 0), pm);
+        Comparator<PackageInfo> frameworkComparator = (a, b) -> {
+            if (a.packageName.equals("android") == b.packageName.equals("android")) {
+                return comparator.compare(a, b);
+            } else if (a.packageName.equals("android")) {
+                return -1;
+            } else {
+                return 1;
+            }
+        };
+        Comparator<PackageInfo> recommendedComparator = (a, b) -> {
+            boolean aRecommended = !recommendedList.isEmpty() && recommendedList.contains(ApplicationWithEquals.fromPackageInfo(a));
+            boolean bRecommended = !recommendedList.isEmpty() && recommendedList.contains(ApplicationWithEquals.fromPackageInfo(b));
+            if (aRecommended == bRecommended) {
+                return frameworkComparator.compare(a, b);
+            } else if (aRecommended) {
+                return -1;
+            } else {
+                return 1;
+            }
+        };
+        list.sort((a, b) -> {
+            boolean aChecked = checkedList.contains(ApplicationWithEquals.fromPackageInfo(a));
+            boolean bChecked = checkedList.contains(ApplicationWithEquals.fromPackageInfo(b));
+            if (aChecked == bChecked) {
+                return recommendedComparator.compare(a, b);
+            } else if (aChecked) {
+                return -1;
+            } else {
+                return 1;
+            }
+        });
+    }
     private void sortApps(List<AppInfo> list) {
         Comparator<PackageInfo> comparator = AppHelper.getAppListComparator(preferences.getInt("list_sort", 0), pm);
         Comparator<AppInfo> frameworkComparator = (a, b) -> {
@@ -498,6 +531,7 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
             HashSet<ApplicationWithEquals> installedList = new HashSet<>();
             List<String> scopeList = module.getScopeList();
             boolean emptyCheckedList = checkedList.isEmpty();
+//            sortAppsPackageInfo(appList);
             for (PackageInfo info : appList) {
                 int userId = info.applicationInfo.uid / 100000;
                 String packageName = info.packageName;
@@ -675,6 +709,9 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
         @Override
         public int hashCode() {
             return Objects.hash(packageName, userId);
+        }
+        public static ApplicationWithEquals fromPackageInfo(PackageInfo packageInfo){
+            return new ApplicationWithEquals(packageInfo.packageName,packageInfo.applicationInfo.uid/100000);
         }
     }
 }
