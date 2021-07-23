@@ -132,7 +132,7 @@ public final class XposedBridge {
      * @param text The log message.
      */
     public synchronized static void log(String text) {
-        Log.i(TAG, text);
+        Log.e(TAG, text);
         ModuleLogger.log(text, false);
     }
 
