@@ -227,16 +227,17 @@ androidComponents.onVariants { v ->
     }
 
     val adb: String = androidComponents.sdkComponents.adb.get().asFile.absolutePath
+    val phonePath="/sdcard/Download/"
     val pushTask = task("push${variantCapped}", Exec::class) {
         dependsOn(zipTask)
         workingDir("${projectDir}/release")
-        commandLine(adb, "push", zipFileName, "/data/local/tmp/")
+        commandLine(adb, "push", zipFileName,phonePath)
     }
     val flashTask = task("flash${variantCapped}", Exec::class) {
         dependsOn(pushTask)
         commandLine(
             adb, "shell", "su", "-c",
-            "magisk --install-module /data/local/tmp/${zipFileName}"
+            "magisk --install-module ${phonePath}${zipFileName}"
         )
     }
     task("flashAndReboot${variantCapped}", Exec::class) {
