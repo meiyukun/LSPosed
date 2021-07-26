@@ -104,6 +104,9 @@ public class LoadedApkGetCLHooker extends XC_MethodHook {
             } else if (blocked) {
                 InstallerVerifier.hookXposedInstaller(classLoader);
             } else {
+                if (unhook != null) {
+                    unhook.unhook();
+                }
                 XC_LoadPackage.callAll(lpparam);
             }
 
