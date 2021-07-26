@@ -28,7 +28,7 @@ import org.lsposed.lspd.BuildConfig;
 
 public class Utils {
 
-    public static final String LOG_TAG = "BugHook-LSP";
+    public static final String LOG_TAG = "BugHook-LSP-Utils";
     public static final boolean isMIUI = !TextUtils.isEmpty(SystemProperties.get("ro.miui.ui.version.name"));
 
     public static void logD(Object msg) {
@@ -63,5 +63,9 @@ public class Utils {
 
     public static void logE(String msg, Throwable throwable) {
         Log.e(LOG_TAG, msg, throwable);
+    }
+    public static void printStack(String message){
+        Exception exception = new Exception("打印调用栈："+message);
+        Log.e(LOG_TAG, message, exception);
     }
 }
