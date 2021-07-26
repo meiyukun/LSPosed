@@ -33,6 +33,7 @@ import androidx.preference.PreferenceManager;
 import com.google.gson.JsonParser;
 
 import org.lsposed.hiddenapibypass.HiddenApiBypass;
+import org.lsposed.manager.adapters.AppHelper;
 import org.lsposed.manager.repo.RepoLoader;
 import org.lsposed.manager.ui.activity.CrashReportActivity;
 import org.lsposed.manager.util.DoHDNS;
@@ -82,6 +83,7 @@ public class App extends Application {
 
     public void onCreate() {
         super.onCreate();
+        refreshAppList();
         if (!BuildConfig.DEBUG) {
             try {
                 Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
@@ -124,7 +126,11 @@ public class App extends Application {
         RepoLoader.getInstance().loadRemoteData();
         loadRemoteVersion();
     }
-
+    private void refreshAppList(){
+        new Thread(()->{
+            AppHelper.getAppList(false);
+        }).start();
+    }
     @NonNull
     public static OkHttpClient getOkHttpClient() {
         if (okHttpClient == null) {
