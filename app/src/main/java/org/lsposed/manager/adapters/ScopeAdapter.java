@@ -341,11 +341,16 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
                         .setNegativeButton(android.R.string.cancel, null)
                         .show();
             }
-        } else {
+        }else if (itemId==R.id.menu_relaunch_app){
+            ConfigManager.reLaunchApp(info.packageName,info.uid/100000,module);
+        }
+        else {
             return false;
         }
         return true;
     }
+
+
 
     public void onPrepareOptionsMenu(@NonNull Menu menu) {
         Intent intent = AppHelper.getSettingsIntent(module.packageName, module.userId);

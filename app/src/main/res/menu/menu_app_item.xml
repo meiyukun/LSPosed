@@ -26,6 +26,10 @@
         android:id="@+id/menu_force_stop"
         android:title="@string/force_stop" />
     <item
+        android:id="@+id/menu_relaunch_app"
+        android:title="@string/relaunch_app"
+        />
+    <item
         android:id="@+id/menu_compile_speed"
         android:title="@string/compile_speed" />
     <item

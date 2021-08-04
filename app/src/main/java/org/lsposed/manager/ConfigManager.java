@@ -20,6 +20,7 @@
 package org.lsposed.manager;
 
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -30,8 +31,10 @@ import android.util.Log;
 import org.lsposed.lspd.models.Application;
 import org.lsposed.lspd.models.UserInfo;
 import org.lsposed.lspd.utils.ParceledListSlice;
+import org.lsposed.manager.adapters.AppHelper;
 import org.lsposed.manager.adapters.ScopeAdapter;
 import org.lsposed.manager.receivers.LSPManagerServiceClient;
+import org.lsposed.manager.util.ModuleUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -282,7 +285,19 @@ public class ConfigManager {
             return -1;
         }
     }
-
+    public static void reLaunchApp(String packageName,int userId, ModuleUtil.InstalledModule module) {
+        //先停止
+        if (packageName.equals("android")) {
+            ConfigManager.reboot(false, null, false);
+        } else {
+            ConfigManager.forceStopPackage(packageName, userId);
+            //启动
+            Intent launchIntent = AppHelper.getLaunchIntentForPackage(packageName, userId);
+            if (launchIntent != null) {
+                ConfigManager.startActivityAsUserWithFeature(launchIntent, module.userId);
+            }
+        }
+    }
     public static List<ResolveInfo> queryIntentActivitiesAsUser(Intent intent, int flags, int userId) {
         List<ResolveInfo> list = new ArrayList<>();
         try {

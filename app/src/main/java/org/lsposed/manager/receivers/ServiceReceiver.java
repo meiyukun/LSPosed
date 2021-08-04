@@ -25,8 +25,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 
+import org.lsposed.manager.ConfigManager;
+import org.lsposed.manager.adapters.ScopeAdapter;
 import org.lsposed.manager.util.ModuleUtil;
 import org.lsposed.manager.util.NotificationUtil;
+
+import java.util.List;
 
 public class ServiceReceiver extends BroadcastReceiver {
 
@@ -47,11 +51,15 @@ public class ServiceReceiver extends BroadcastReceiver {
         if (module == null) {
             return;
         }
-
         if (intent.getAction().equals("org.lsposed.action.MODULE_NOT_ACTIVATAED")) {
             NotificationUtil.showNotification(context, packageName, module.getAppName(), userId, false);
         } else if (intent.getAction().equals("org.lsposed.action.MODULE_UPDATED")) {
             NotificationUtil.showNotification(context, packageName, module.getAppName(), userId, true);
+            List<ScopeAdapter.ApplicationWithEquals> moduleScope = ConfigManager.getModuleScope(module.packageName);
+            moduleScope.forEach((app)->{
+                if (!app.packageName.equals("android"))
+                    ConfigManager.forceStopPackage(app.packageName,app.userId);
+            });
         }
     }
 }
