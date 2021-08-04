@@ -19,6 +19,7 @@
 
 package org.lsposed.manager.receivers;
 
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.ResolveInfo;
@@ -185,5 +186,11 @@ public class LSPManagerServiceClient {
     public static boolean dex2oatFlagsLoaded() throws RemoteException, NullPointerException {
         ensureService();
         return service.dex2oatFlagsLoaded();
+    }
+
+    public static List<ActivityManager.RecentTaskInfo> getRecentTasks(int maxNum, int flags,
+                                                                      int userId) throws RemoteException {
+        ensureService();
+        return service.getRecentTasks(maxNum, flags, userId);
     }
 }

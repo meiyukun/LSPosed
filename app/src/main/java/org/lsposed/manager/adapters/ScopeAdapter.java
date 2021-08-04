@@ -342,7 +342,7 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
                         .show();
             }
         }else if (itemId==R.id.menu_relaunch_app){
-            ConfigManager.reLaunchApp(info.packageName,info.uid/100000,module);
+            ConfigManager.reLaunchApp(info.packageName,info.uid/100000);
         }
         else {
             return false;

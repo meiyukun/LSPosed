@@ -19,6 +19,7 @@
 
 package org.lsposed.manager;
 
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -285,7 +286,7 @@ public class ConfigManager {
             return -1;
         }
     }
-    public static void reLaunchApp(String packageName,int userId, ModuleUtil.InstalledModule module) {
+    public static void reLaunchApp(String packageName,int userId) {
         //先停止
         if (packageName.equals("android")) {
             ConfigManager.reboot(false, null, false);
@@ -294,7 +295,7 @@ public class ConfigManager {
             //启动
             Intent launchIntent = AppHelper.getLaunchIntentForPackage(packageName, userId);
             if (launchIntent != null) {
-                ConfigManager.startActivityAsUserWithFeature(launchIntent, module.userId);
+                ConfigManager.startActivityAsUserWithFeature(launchIntent, userId);
             }
         }
     }
@@ -302,6 +303,16 @@ public class ConfigManager {
         List<ResolveInfo> list = new ArrayList<>();
         try {
             list.addAll(LSPManagerServiceClient.queryIntentActivitiesAsUser(intent, flags, userId).getList());
+        } catch (Throwable e) {
+            Log.e(App.TAG, Log.getStackTraceString(e));
+        }
+        return list;
+    }
+    public static List<ActivityManager.RecentTaskInfo> getRecentTasks(int maxNum, int flags,
+                                                                      int userId) {
+        List<ActivityManager.RecentTaskInfo> list=new ArrayList<>();
+        try {
+            list=LSPManagerServiceClient.getRecentTasks(maxNum, flags, userId);
         } catch (Throwable e) {
             Log.e(App.TAG, Log.getStackTraceString(e));
         }

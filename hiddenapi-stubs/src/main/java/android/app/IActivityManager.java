@@ -22,6 +22,7 @@ package android.app;
 import android.content.IIntentReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ParceledListSlice;
 import android.content.pm.UserInfo;
 import android.os.Binder;
 import android.os.Bundle;
@@ -94,7 +95,7 @@ public interface IActivityManager extends IInterface {
     boolean switchUser(int userid) throws RemoteException;
 
     UserInfo getCurrentUser() throws RemoteException;
-
+    ParceledListSlice getRecentTasks(int maxNum, int flags, int userId) throws RemoteException;
     abstract class Stub extends Binder implements IActivityManager {
 
         public static IActivityManager asInterface(IBinder obj) {

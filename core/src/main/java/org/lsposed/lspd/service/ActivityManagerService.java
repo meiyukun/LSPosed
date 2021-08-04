@@ -21,6 +21,7 @@ package org.lsposed.lspd.service;
 
 import static org.lsposed.lspd.service.ServiceManager.TAG;
 
+import android.app.ActivityManager;
 import android.app.IActivityManager;
 import android.app.IApplicationThread;
 import android.app.IServiceConnection;
@@ -28,6 +29,7 @@ import android.app.ProfilerInfo;
 import android.content.IIntentReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ParceledListSlice;
 import android.content.pm.UserInfo;
 import android.os.Build;
 import android.os.Bundle;
@@ -160,5 +162,11 @@ public class ActivityManagerService {
         IActivityManager am = getActivityManager();
         if (am == null) return null;
         return am.getCurrentUser();
+    }
+    public static ParceledListSlice<ActivityManager.RecentTaskInfo> getRecentTasks(int maxNum, int flags,
+                                                                                   int userId) throws RemoteException {
+        IActivityManager am = getActivityManager();
+        if (am == null) return null;
+        return am.getRecentTasks(maxNum, flags, userId);
     }
 }

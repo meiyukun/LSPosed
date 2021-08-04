@@ -3,7 +3,7 @@ package org.lsposed.lspd;
 import org.lsposed.lspd.utils.ParceledListSlice;
 import org.lsposed.lspd.models.UserInfo;
 import org.lsposed.lspd.models.Application;
-
+import android.app.ActivityManager.RecentTaskInfo;
 
 interface ILSPManagerService {
     ParceledListSlice<PackageInfo> getInstalledPackagesFromAllUsers(int flags, boolean filterNoProcess) = 2;
@@ -59,4 +59,6 @@ interface ILSPManagerService {
     ParceledListSlice<ResolveInfo> queryIntentActivitiesAsUser(in Intent intent, int flags, int userId) = 31;
 
     boolean dex2oatFlagsLoaded() = 32;
+
+    List<RecentTaskInfo> getRecentTasks(int maxNum, int flags,int userId)=33;
 }

@@ -22,6 +22,7 @@ package org.lsposed.lspd.service;
 import static android.content.Context.BIND_AUTO_CREATE;
 import static org.lsposed.lspd.service.ServiceManager.TAG;
 
+import android.app.ActivityManager;
 import android.app.IServiceConnection;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -265,4 +266,11 @@ public class LSPManagerService extends ILSPManagerService.Stub {
 //        SystemProperties.set(PROP_NAME, String.join(" ", splitFlags));
         return SystemProperties.get(PROP_NAME).contains(PROP_VALUE);
     }
+
+    @Override
+    public List<ActivityManager.RecentTaskInfo> getRecentTasks(int maxNum, int flags, int userId) throws RemoteException {
+        return ActivityManagerService.getRecentTasks(maxNum, flags, userId).getList();
+    }
+
+
 }
