@@ -58,19 +58,23 @@ public class ServiceReceiver extends BroadcastReceiver {
         } else if (intent.getAction().equals("org.lsposed.action.MODULE_UPDATED")) {
             NotificationUtil.showNotification(context, packageName, module.getAppName(), userId, true);
             //重启最表面的应用
-            List<ScopeAdapter.ApplicationWithEquals> moduleScope = ConfigManager.getModuleScope(module.packageName);
-            List<ActivityManager.RecentTaskInfo> recentTasks = ConfigManager.getRecentTasks(1, 0, userId);
-            if (!recentTasks.isEmpty()){
-                ActivityManager.RecentTaskInfo recentTaskInfo = recentTasks.get(0);
-                String topPackageName = recentTaskInfo.topActivity.getPackageName();
-                if (!topPackageName.equals("android")){
-                    for (ScopeAdapter.ApplicationWithEquals app : moduleScope) {
-                        if (app.packageName.equals(topPackageName)){
-                            ConfigManager.reLaunchApp(topPackageName,app.userId);
-                            break;
+
+            try {
+                List<ScopeAdapter.ApplicationWithEquals> moduleScope = ConfigManager.getModuleScope(module.packageName);
+                List<ActivityManager.RecentTaskInfo> recentTasks = ConfigManager.getRecentTasks(1, 0, userId);
+                if (!recentTasks.isEmpty()){
+                    ActivityManager.RecentTaskInfo recentTaskInfo = recentTasks.get(0);
+                    String topPackageName = recentTaskInfo.topActivity.getPackageName();
+                    if (!topPackageName.equals("android")){
+                        for (ScopeAdapter.ApplicationWithEquals app : moduleScope) {
+                            if (app.packageName.equals(topPackageName) && app.userId == userId) {
+                                ConfigManager.reLaunchApp(topPackageName, app.userId);
+                                break;
+                            }
                         }
                     }
                 }
+            } catch (Throwable ignored) {
             }
 
         }
