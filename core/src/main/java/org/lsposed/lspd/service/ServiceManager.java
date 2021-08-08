@@ -19,15 +19,12 @@
 
 package org.lsposed.lspd.service;
 
-import android.app.ActivityThread;
 import android.content.Context;
 import android.ddm.DdmHandleAppName;
-import android.os.Build;
 import android.os.IBinder;
 import android.os.IServiceManager;
 import android.os.Looper;
 import android.os.Process;
-import android.os.StrictMode;
 import android.system.Os;
 import android.util.Log;
 
@@ -35,15 +32,16 @@ import com.android.internal.os.BinderInternal;
 
 import org.lsposed.lspd.BuildConfig;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import hidden.HiddenApiBridge;
 
 public class ServiceManager {
     private static LSPosedService mainService = null;
-    private static LSPModuleService moduleService = null;
+    final private static ConcurrentHashMap<String, LSPModuleService> moduleServices = new ConcurrentHashMap<>();
     private static LSPApplicationService applicationService = null;
     private static LSPManagerService managerService = null;
     private static LSPSystemServerService systemServerService = null;
-    private static Context systemContext = null;
     public static final String TAG = "LSPosedService";
 
     private static void waitSystemService(String name) {
@@ -81,7 +79,6 @@ public class ServiceManager {
         Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
         Looper.prepareMainLooper();
         mainService = new LSPosedService();
-        moduleService = new LSPModuleService();
         applicationService = new LSPApplicationService();
         managerService = new LSPManagerService();
         systemServerService = new LSPSystemServerService();
@@ -90,7 +87,7 @@ public class ServiceManager {
 
         Process.killProcess(Os.getppid());
 
-        createSystemContext();
+        DdmHandleAppName.setAppName("lspd", 0);
 
         waitSystemService("package");
         waitSystemService("activity");
@@ -129,8 +126,8 @@ public class ServiceManager {
         throw new RuntimeException("Main thread loop unexpectedly exited");
     }
 
-    public static LSPModuleService getModuleService() {
-        return moduleService;
+    public static LSPModuleService getModuleService(String module) {
+        return moduleServices.computeIfAbsent(module, LSPModuleService::new);
     }
 
     public static LSPApplicationService getApplicationService() {
@@ -151,23 +148,4 @@ public class ServiceManager {
         return systemServerService.systemServerRequested();
     }
 
-    private static void createSystemContext() {
-        ActivityThread activityThread = ActivityThread.systemMain();
-        systemContext = activityThread.getSystemContext();
-        systemContext.setTheme(android.R.style.Theme_DeviceDefault_Light_DarkActionBar);
-        DdmHandleAppName.setAppName("lspd", 0);
-        var vmPolicy = new StrictMode.VmPolicy.Builder();
-        if (BuildConfig.DEBUG) {
-            vmPolicy.detectAll().penaltyLog();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                vmPolicy.penaltyListener(systemContext.getMainExecutor(),
-                        v -> Log.w(TAG, v.getMessage(), v));
-            }
-        }
-        StrictMode.setVmPolicy(vmPolicy.build());
-    }
-
-    public static Context getSystemContext() {
-        return systemContext;
-    }
 }

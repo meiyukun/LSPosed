@@ -24,7 +24,6 @@ import java.nio.file.Paths
 import java.time.Instant
 
 plugins {
-    id("org.gradle.idea")
     id("com.android.application")
     id("androidx.navigation.safeargs")
 }
@@ -134,19 +133,12 @@ val optimizeReleaseRes = task("optimizeReleaseRes").doLast {
         androidComponents.sdkComponents.sdkDirectory.get().asFile,
         "build-tools/${androidBuildToolsVersion}/aapt2"
     )
-    val mapping = Paths.get(
-        project.buildDir.path,
-        "outputs",
-        "mapping",
-        "release",
-        "shortening.txt"
-    )
     val zip = Paths.get(
         project.buildDir.path,
         "intermediates",
-        "shrunk_processed_res",
+        "optimized_processed_res",
         "release",
-        "resources-release-stripped.ap_"
+        "resources-release-optimize.ap_"
     )
     val optimized = File("${zip}.opt")
     val cmd = exec {
@@ -154,8 +146,6 @@ val optimizeReleaseRes = task("optimizeReleaseRes").doLast {
             aapt2, "optimize",
             "--collapse-resource-names",
             "--enable-sparse-encoding",
-            "--shorten-resource-paths",
-            "--resource-path-shortening-map", mapping,
             "-o", optimized,
             zip
         )
@@ -168,7 +158,7 @@ val optimizeReleaseRes = task("optimizeReleaseRes").doLast {
 }
 
 tasks.whenTaskAdded {
-    if (name == "shrinkReleaseRes") {
+    if (name == "optimizeReleaseResources") {
         finalizedBy(optimizeReleaseRes)
     }
 }
@@ -178,11 +168,11 @@ dependencies {
     val okhttpVersion = "4.9.1"
     val navVersion = "2.3.5"
     annotationProcessor("com.github.bumptech.glide:compiler:$glideVersion")
-    implementation("androidx.activity:activity:1.2.3")
+    implementation("androidx.activity:activity:1.3.1")
     implementation("androidx.browser:browser:1.3.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
     implementation("androidx.core:core:1.6.0")
-    implementation("androidx.fragment:fragment:1.3.5")
+    implementation("androidx.fragment:fragment:1.3.6")
     implementation("androidx.navigation:navigation-fragment:$navVersion")
     implementation("androidx.navigation:navigation-ui:$navVersion")
     implementation("androidx.recyclerview:recyclerview:1.2.1")

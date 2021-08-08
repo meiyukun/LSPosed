@@ -26,6 +26,7 @@ import android.app.ActivityManager;
 import android.app.IServiceConnection;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -40,13 +41,13 @@ import org.lsposed.lspd.BuildConfig;
 import org.lsposed.lspd.ILSPManagerService;
 import org.lsposed.lspd.models.Application;
 import org.lsposed.lspd.models.UserInfo;
-import org.lsposed.lspd.utils.ParceledListSlice;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
 import java.util.List;
 
 import de.robv.android.xposed.XposedBridge;
+import io.github.xposed.xposedservice.utils.ParceledListSlice;
 
 public class LSPManagerService extends ILSPManagerService.Stub {
 
@@ -124,8 +125,18 @@ public class LSPManagerService extends ILSPManagerService.Stub {
     @Override
     public boolean enableModule(String packageName) throws RemoteException {
         PackageInfo pkgInfo = PackageService.getPackageInfo(packageName, PackageService.MATCH_ALL_FLAGS, 0);
-        if (pkgInfo == null) return false;
-        return ConfigManager.getInstance().enableModule(packageName, pkgInfo.applicationInfo);
+        if (pkgInfo != null) {
+            ApplicationInfo appInfo;
+            try {
+                appInfo = pkgInfo.applicationInfo;
+            } catch (Throwable t) {
+                Log.wtf(TAG, t);
+                throw t;
+            }
+            return ConfigManager.getInstance().enableModule(packageName, appInfo);
+        } else {
+            return false;
+        }
     }
 
     @Override

@@ -46,10 +46,6 @@ public class InstallerVerifier {
                 .setMinCheckedPlatformVersion(27)
                 .build();
         try {
-            var appInfo = ServiceManager.getSystemContext().getPackageManager().getPackageArchiveInfo(path, 0).applicationInfo;
-            if ((appInfo.flags & ApplicationInfo.FLAG_TEST_ONLY) != 0) {
-                return true;
-            }
             ApkVerifier.Result result = verifier.verify();
             if (!result.isVerified()) {
                 return false;
@@ -84,9 +80,8 @@ public class InstallerVerifier {
     public static void hookXposedInstaller(final ClassLoader classLoader, IBinder binder) {
         Utils.logI("Found LSPosed Manager, hooking it");
         try {
-            Class<?> serviceClass = XposedHelpers.findClass("org.lsposed.manager.receivers.LSPManagerServiceClient", classLoader);
-            XposedHelpers.setStaticObjectField(serviceClass, "binder", binder);
-
+            var clazz = XposedHelpers.findClass("org.lsposed.manager.Constants", classLoader);
+            XposedHelpers.callStaticMethod(clazz, "setBinder", new Class[]{IBinder.class}, binder);
             Utils.logI("Hooked LSPosed Manager");
         } catch (Throwable t) {
             Utils.logW("Could not hook LSPosed Manager", t);
