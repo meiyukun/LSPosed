@@ -58,7 +58,6 @@ public class ServiceReceiver extends BroadcastReceiver {
         } else if (intent.getAction().equals("org.lsposed.action.MODULE_UPDATED")) {
             NotificationUtil.showNotification(context, packageName, module.getAppName(), userId, true);
             //重启最表面的应用
-
             try {
                 List<ScopeAdapter.ApplicationWithEquals> moduleScope = ConfigManager.getModuleScope(module.packageName);
                 List<ActivityManager.RecentTaskInfo> recentTasks = ConfigManager.getRecentTasks(1, 0, userId);
