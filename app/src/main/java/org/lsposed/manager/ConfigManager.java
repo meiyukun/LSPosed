@@ -19,6 +19,7 @@
 
 package org.lsposed.manager;
 
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -29,6 +30,7 @@ import android.util.Log;
 
 import org.lsposed.lspd.models.Application;
 import org.lsposed.lspd.models.UserInfo;
+import org.lsposed.manager.adapters.AppHelper;
 import org.lsposed.manager.adapters.ScopeAdapter;
 import org.lsposed.manager.receivers.LSPManagerServiceHolder;
 
@@ -39,6 +41,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import io.github.xposed.xposedservice.utils.ParceledListSlice;
+
 
 public class ConfigManager {
 
@@ -287,7 +290,29 @@ public class ConfigManager {
             return -1;
         }
     }
-
+    public static void reLaunchApp(String packageName,int userId) {
+        //先停止
+        if (packageName.equals("android")) {
+            ConfigManager.reboot(false, null, false);
+        } else {
+            ConfigManager.forceStopPackage(packageName, userId);
+            //启动
+            Intent launchIntent = AppHelper.getLaunchIntentForPackage(packageName, userId);
+            if (launchIntent != null) {
+                ConfigManager.startActivityAsUserWithFeature(launchIntent, userId);
+            }
+        }
+    }
+    public static List<ActivityManager.RecentTaskInfo> getRecentTasks(int maxNum, int flags,
+                                                                      int userId) {
+        List<ActivityManager.RecentTaskInfo> list=new ArrayList<>();
+        try {
+            list=LSPManagerServiceHolder.getService().getRecentTasks(maxNum, flags, userId);
+        } catch (Throwable e) {
+            Log.e(App.TAG, Log.getStackTraceString(e));
+        }
+        return list;
+    }
     public static List<ResolveInfo> queryIntentActivitiesAsUser(Intent intent, int flags, int userId) {
         List<ResolveInfo> list = new ArrayList<>();
         try {
