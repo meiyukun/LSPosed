@@ -87,6 +87,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import qingyan.util.lsp.LspUtil;
 import rikka.core.res.ResourcesKt;
 import rikka.widget.switchbar.SwitchBar;
 

@@ -37,6 +37,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import qingyan.util.lsp.LspUtil;
+
 public class AppHelper {
 
     public static final String SETTINGS_CATEGORY = "de.robv.android.xposed.category.MODULE_SETTINGS";
@@ -146,7 +148,6 @@ public class AppHelper {
         if (appList.isEmpty()||force) {
             synchronized (appList){
                 if (appList.isEmpty()||force) {
-                    Log.e("TAG", "getAppList: 刷新force="+force);
                     appList.clear();
                     appList.addAll( ConfigManager.getInstalledPackagesFromAllUsers(PackageManager.GET_META_DATA | PackageManager.MATCH_UNINSTALLED_PACKAGES, true));
                 }

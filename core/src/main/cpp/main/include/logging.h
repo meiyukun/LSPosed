@@ -27,12 +27,14 @@
 #define LOG_TAG    "LSPosed-Native-BugHook"
 #endif
 
+#define LOG_DISABLED
 #ifdef LOG_DISABLED
 #define LOGD(...)
 #define LOGV(...)
 #define LOGI(...)
 #define LOGW(...)
 #define LOGE(...)
+#define LOGF(...)
 #else
 #ifndef NDEBUG
 #define LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
