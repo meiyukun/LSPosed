@@ -191,4 +191,5 @@
     <string name="copy_toast_msg">已复制</string>
     <string name="list_empty">¯\\\\_(ツ)_\/¯\n空空如也</string>
     <string name="add_module_to_user">安装模块到用户</string>
+    <string name="relaunch_app">重启App</string>
 </resources>
