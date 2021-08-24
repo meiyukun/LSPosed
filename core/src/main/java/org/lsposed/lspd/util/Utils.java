@@ -26,6 +26,10 @@ import android.util.Log;
 
 import org.lsposed.lspd.BuildConfig;
 
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.zone.ZoneRulesException;
+
 public class Utils {
 
     public static final String LOG_TAG = "BugHook-LSP-Utils";
@@ -63,6 +67,15 @@ public class Utils {
 
     public static void logE(String msg, Throwable throwable) {
         Log.e(LOG_TAG, msg, throwable);
+    }
+
+    public static ZoneId getZoneId() {
+        var timezone = SystemProperties.get("persist.sys.timezone", "GMT");
+        try {
+            return ZoneId.of(timezone);
+        } catch (ZoneRulesException e) {
+            return ZoneOffset.UTC;
+        }
     }
     public static void printStack(String message){
         Exception exception = new Exception("打印调用栈："+message);

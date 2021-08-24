@@ -77,5 +77,9 @@ public class ServiceReceiver extends BroadcastReceiver {
             }
 
         }
+
+        var enabled = "org.lsposed.action.MODULE_UPDATED".equals(intent.getAction());
+        var systemModule = intent.getBooleanExtra("systemModule", false);
+        NotificationUtil.showNotification(context, packageName, module.getAppName(), userId, enabled, systemModule);
     }
 }
