@@ -53,10 +53,7 @@ public class ServiceReceiver extends BroadcastReceiver {
         if (module == null) {
             return;
         }
-        if (intent.getAction().equals("org.lsposed.action.MODULE_NOT_ACTIVATAED")) {
-            NotificationUtil.showNotification(context, packageName, module.getAppName(), userId, false);
-        } else if (intent.getAction().equals("org.lsposed.action.MODULE_UPDATED")) {
-            NotificationUtil.showNotification(context, packageName, module.getAppName(), userId, true);
+        if (intent.getAction().equals("org.lsposed.action.MODULE_UPDATED")) {
             //重启最表面的应用
             try {
                 List<ScopeAdapter.ApplicationWithEquals> moduleScope = ConfigManager.getModuleScope(module.packageName);

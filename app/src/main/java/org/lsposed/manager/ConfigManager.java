@@ -297,7 +297,7 @@ public class ConfigManager {
     public static void reLaunchApp(String packageName,int userId) {
         //先停止
         if (packageName.equals("android")) {
-            ConfigManager.reboot(false, null, false);
+            ConfigManager.reboot(false);
         } else {
             ConfigManager.forceStopPackage(packageName, userId);
             //启动

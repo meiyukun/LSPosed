@@ -62,7 +62,7 @@ interface ILSPManagerService {
 
     List<RecentTaskInfo> getRecentTasks(int maxNum, int flags,int userId)=33;
 
-    void setHiddenIcon(boolean hide) = 33;
+    void setHiddenIcon(boolean hide) = 34;
 
     Map<String,ParcelFileDescriptor> getLogs() = 34;
 }

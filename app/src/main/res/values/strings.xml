@@ -186,7 +186,5 @@
     <string name="manager_crashed">Manager crashed</string>
     <string name="copy_crash_info">Copy crash info</string>
     <string name="copy_toast_msg">Copied</string>
-    <string name="list_empty">¯\\\\_(ツ)_\/¯\nNothing here</string>
-    <string name="add_module_to_user">Add module to user</string>
     <string name="relaunch_app">Relaunch App</string>
 </resources>
