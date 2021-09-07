@@ -1,36 +1,53 @@
 package org.lsposed.lspd.service;
 
 import static org.lsposed.lspd.service.ServiceManager.TAG;
+import static org.lsposed.lspd.service.ServiceManager.toGlobalNamespace;
 
+import android.os.ParcelFileDescriptor;
 import android.os.SELinux;
+import android.os.SharedMemory;
+import android.system.ErrnoException;
+import android.system.OsConstants;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
+import org.lsposed.lspd.models.PreLoadedApk;
 import org.lsposed.lspd.util.Utils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipFile;
 
 class ConfigFileManager {
-    static final File basePath = new File("/data/adb/lspd");
-    static final File managerApkPath = new File(basePath, "manager.apk");
-    private static final File lockPath = new File(basePath, "lock");
-    private static final File configDirPath = new File(basePath, "config");
-    static final File dbPath = new File(configDirPath, "modules_config.db");
-    private static final File logDirPath = new File(basePath, "log");
-    private static final File oldLogDirPath = new File(basePath, "log.old");
+    static final Path basePath = Paths.get("/data/adb/lspd");
+    static final File managerApkPath = basePath.resolve("manager.apk").toFile();
+    private static final Path lockPath = basePath.resolve("lock");
+    private static final Path configDirPath = basePath.resolve("config");
+    static final File dbPath = configDirPath.resolve("modules_config.db").toFile();
+    private static final Path logDirPath = basePath.resolve("log");
+    private static final Path oldLogDirPath = basePath.resolve("log.old");
     private static final DateTimeFormatter formatter =
             DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(Utils.getZoneId());
     @SuppressWarnings("FieldCanBeLocal")
@@ -38,87 +55,174 @@ class ConfigFileManager {
 
     static {
         try {
-            Files.createDirectories(basePath.toPath());
-            SELinux.setFileContext(basePath.getPath(), "u:object_r:system_file:s0");
-            Files.createDirectories(configDirPath.toPath());
-            Files.createDirectories(logDirPath.toPath());
+            Files.createDirectories(basePath);
+            SELinux.setFileContext(basePath.toString(), "u:object_r:system_file:s0");
+            Files.createDirectories(configDirPath);
+            Files.createDirectories(logDirPath);
         } catch (IOException e) {
             Log.e(TAG, Log.getStackTraceString(e));
         }
     }
 
-    private static void moveFolderIfExists(Path source, Path target) throws IOException {
-        if (!Files.exists(source)) return;
-        if (Files.exists(target)) {
-            Files.walkFileTree(target, new SimpleFileVisitor<>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-                        throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
+    static void deleteFolderIfExists(Path target) throws IOException {
+        if (Files.notExists(target)) return;
+        Files.walkFileTree(target, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                    throws IOException {
+                Files.delete(file);
+                return FileVisitResult.CONTINUE;
+            }
 
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException e)
-                        throws IOException {
-                    if (e == null) {
-                        Files.delete(dir);
-                        return FileVisitResult.CONTINUE;
-                    } else {
-                        throw e;
-                    }
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException e)
+                    throws IOException {
+                if (e == null) {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                } else {
+                    throw e;
                 }
-            });
-        }
-        Files.move(source, target);
+            }
+        });
     }
 
     static void moveLogDir() {
         try {
-            moveFolderIfExists(logDirPath.toPath(), oldLogDirPath.toPath());
-            Files.createDirectories(logDirPath.toPath());
+            if (Files.exists(logDirPath)) {
+                deleteFolderIfExists(oldLogDirPath);
+                Files.move(logDirPath, oldLogDirPath);
+            }
+            Files.createDirectories(logDirPath);
         } catch (IOException e) {
             Log.e(TAG, Log.getStackTraceString(e));
         }
     }
 
     private static String getNewLogFileName(String prefix) {
-        return prefix + "-" + formatter.format(Instant.now()) + ".txt";
+        return prefix + "_" + formatter.format(Instant.now()) + ".txt";
     }
 
-    static File getNewVerboseLogPath() {
-        return new File(logDirPath, getNewLogFileName("verbose"));
+    static File getNewVerboseLogPath() throws IOException {
+        Files.createDirectories(logDirPath);
+        return logDirPath.resolve(getNewLogFileName("verbose")).toFile();
     }
 
-    static File getNewModulesLogPath() {
-        return new File(logDirPath, getNewLogFileName("modules"));
+    static File getNewModulesLogPath() throws IOException {
+        Files.createDirectories(logDirPath);
+        return logDirPath.resolve(getNewLogFileName("modules")).toFile();
     }
 
-    private static String readText(File file) throws IOException {
-        return new String(Files.readAllBytes(file.toPath())).trim();
+    static Map<String, ParcelFileDescriptor> getLogs() {
+        var map = new LinkedHashMap<String, ParcelFileDescriptor>();
+        try {
+            putFds(map, logDirPath);
+            putFds(map, oldLogDirPath);
+        } catch (IOException e) {
+            Log.e(TAG, "getLogs", e);
+        }
+        return map;
+    }
+
+    private static void putFds(Map<String, ParcelFileDescriptor> map, Path path) throws IOException {
+        Files.walkFileTree(path, new SimpleFileVisitor<>() {
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                var name = path.getParent().relativize(file).toString();
+                var fd = ParcelFileDescriptor.open(file.toFile(), ParcelFileDescriptor.MODE_READ_ONLY);
+                map.put(name, fd);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    private static void readDexes(ZipFile apkFile, List<SharedMemory> preLoadedDexes) {
+        int secondary = 2;
+        for (var dexFile = apkFile.getEntry("classes.dex"); dexFile != null;
+             dexFile = apkFile.getEntry("classes" + secondary + ".dex"), secondary++) {
+            try (var in = apkFile.getInputStream(dexFile)) {
+                var memory = SharedMemory.create(null, in.available());
+                var byteBuffer = memory.mapReadWrite();
+                Channels.newChannel(in).read(byteBuffer);
+                SharedMemory.unmap(byteBuffer);
+                memory.setProtect(OsConstants.PROT_READ);
+                preLoadedDexes.add(memory);
+            } catch (IOException | ErrnoException e) {
+                Log.w(TAG, "Can not load " + dexFile + " in " + apkFile, e);
+            }
+        }
+    }
+
+    private static void readName(ZipFile apkFile, String initName, List<String> names) {
+        var initEntry = apkFile.getEntry(initName);
+        if (initEntry == null) return;
+        try (var in = apkFile.getInputStream(initEntry)) {
+            var reader = new BufferedReader(new InputStreamReader(in));
+            String name;
+            while ((name = reader.readLine()) != null) {
+                name = name.trim();
+                if (name.isEmpty() || name.startsWith("#")) continue;
+                names.add(name);
+            }
+        } catch (IOException e) {
+            Log.e(TAG, "Can not open " + initEntry, e);
+        }
+    }
+
+    @Nullable
+    static PreLoadedApk loadModule(String path) {
+        if (path == null) return null;
+        var file = new PreLoadedApk();
+        var preLoadedDexes = new ArrayList<SharedMemory>();
+        var moduleClassNames = new ArrayList<String>(1);
+        var moduleLibraryNames = new ArrayList<String>(1);
+        try (var apkFile = new ZipFile(toGlobalNamespace(path))) {
+            readDexes(apkFile, preLoadedDexes);
+            readName(apkFile, "assets/xposed_init", moduleClassNames);
+            readName(apkFile, "assets/native_init", moduleLibraryNames);
+        } catch (IOException e) {
+            Log.e(TAG, "Can not open " + path, e);
+            return null;
+        }
+        if (preLoadedDexes.isEmpty()) return null;
+        if (moduleClassNames.isEmpty()) return null;
+        file.preLoadedDexes = preLoadedDexes;
+        file.moduleClassNames = moduleClassNames;
+        file.moduleLibraryNames = moduleLibraryNames;
+        return file;
+    }
+
+    private static String readText(Path file) throws IOException {
+        return new String(Files.readAllBytes(file)).trim();
     }
 
     // TODO: Remove after next release
     static void migrateOldConfig(ConfigManager configManager) {
-        var miscPath = new File(basePath, "misc_path");
-        var enableResources = new File(configDirPath, "enable_resources");
+        var miscPath = basePath.resolve("misc_path");
+        var enableResources = configDirPath.resolve("enable_resources");
+        var manager = configDirPath.resolve("manager");
+        var verboseLog = configDirPath.resolve("verbose_log");
 
-        if (miscPath.exists()) {
+        if (Files.exists(miscPath)) {
             try {
                 var s = "/data/misc/" + readText(miscPath);
                 configManager.updateModulePrefs("lspd", 0, "config", "misc_path", s);
-                miscPath.delete();
+                Files.delete(miscPath);
             } catch (IOException ignored) {
             }
         }
-        if (enableResources.exists()) {
+        if (Files.exists(enableResources)) {
             try {
                 var s = readText(enableResources);
                 var i = Integer.parseInt(s);
                 configManager.updateModulePrefs("lspd", 0, "config", "enable_resources", i == 1);
-                enableResources.delete();
+                Files.delete(enableResources);
             } catch (IOException ignored) {
             }
+        }
+        try {
+            Files.deleteIfExists(manager);
+            Files.deleteIfExists(verboseLog);
+        } catch (IOException ignored) {
         }
     }
 
@@ -130,7 +234,7 @@ class ConfigFileManager {
         var permissions = PosixFilePermissions.asFileAttribute(p);
 
         try {
-            var lockChannel = FileChannel.open(lockPath.toPath(), openOptions, permissions);
+            var lockChannel = FileChannel.open(lockPath, openOptions, permissions);
             locker = new FileLocker(lockChannel);
             return locker.isValid();
         } catch (Throwable e) {

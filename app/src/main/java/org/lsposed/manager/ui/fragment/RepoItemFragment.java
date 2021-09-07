@@ -19,7 +19,6 @@
 
 package org.lsposed.manager.ui.fragment;
 
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -42,6 +41,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.Lifecycle;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -65,7 +65,6 @@ import org.lsposed.manager.repo.model.OnlineModule;
 import org.lsposed.manager.repo.model.Release;
 import org.lsposed.manager.repo.model.ReleaseAsset;
 import org.lsposed.manager.ui.widget.LinkifyTextView;
-import org.lsposed.manager.util.LinearLayoutManagerFix;
 import org.lsposed.manager.util.NavUtil;
 import org.lsposed.manager.util.chrome.CustomTabsURLSpan;
 
@@ -90,6 +89,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
     private ReleaseAdapter releaseAdapter;
 
     private static String readWebviewHTML(String name) {
+
         try {
             var input = App.getInstance().getAssets().open("webview/" + name);
             var result = new ByteArrayOutputStream(1024);
@@ -204,8 +204,8 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
     public void moduleReleasesLoaded(OnlineModule module) {
         this.module = module;
         if (releaseAdapter != null) {
-            requireActivity().runOnUiThread(() -> releaseAdapter.loadItems());
-            if (module.getReleases().size() == 1) {
+            runOnUiThread(() -> releaseAdapter.loadItems());
+            if (isResumed() && module.getReleases().size() == 1) {
                 Snackbar.make(binding.snackbar, R.string.module_release_no_more, Snackbar.LENGTH_SHORT).show();
             }
         }
@@ -214,23 +214,18 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
     @Override
     public void onThrowable(Throwable t) {
         if (releaseAdapter != null) {
-            requireActivity().runOnUiThread(() -> releaseAdapter.loadItems());
+            runOnUiThread(() -> releaseAdapter.loadItems());
+            if (isResumed()) {
+                Snackbar.make(binding.snackbar, getString(R.string.repo_load_failed, t.getLocalizedMessage()), Snackbar.LENGTH_SHORT).show();
+            }
         }
-        if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) {
-            Snackbar.make(binding.snackbar, getString(R.string.repo_load_failed, t.getLocalizedMessage()), Snackbar.LENGTH_SHORT).show();
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        RepoLoader.getInstance().removeListener(this);
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
 
+        RepoLoader.getInstance().removeListener(this);
         binding = null;
     }
 
@@ -444,7 +439,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
                         holder.recyclerView.setAdapter(new InformationAdapter(module));
                     }
                     holder.recyclerView.setTag(position);
-                    holder.recyclerView.setLayoutManager(new LinearLayoutManagerFix(requireActivity()));
+                    holder.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
                     holder.recyclerView.getBorderViewDelegate().setBorderVisibilityChangedListener((top, oldTop, bottom, oldBottom) -> binding.appBar.setRaised(!top));
                     var insets = requireActivity().getWindow().getDecorView().getRootWindowInsets();
                     if (insets != null)

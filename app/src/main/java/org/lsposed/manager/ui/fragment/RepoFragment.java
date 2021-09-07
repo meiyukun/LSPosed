@@ -19,14 +19,23 @@
 
 package org.lsposed.manager.ui.fragment;
 
+import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebView;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
@@ -36,6 +45,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.lifecycle.Lifecycle;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
@@ -46,7 +56,7 @@ import org.lsposed.manager.databinding.FragmentRepoBinding;
 import org.lsposed.manager.databinding.ItemOnlinemoduleBinding;
 import org.lsposed.manager.repo.RepoLoader;
 import org.lsposed.manager.repo.model.OnlineModule;
-import org.lsposed.manager.util.LinearLayoutManagerFix;
+import org.lsposed.manager.util.ModuleUtil;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -56,6 +66,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import rikka.core.res.ResourcesKt;
 import rikka.core.util.LabelComparator;
 import rikka.recyclerview.RecyclerViewKt;
 
@@ -63,6 +74,8 @@ public class RepoFragment extends BaseFragment implements RepoLoader.Listener {
     protected FragmentRepoBinding binding;
     protected SearchView searchView;
     private SearchView.OnQueryTextListener mSearchListener;
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
+    private boolean preLoadWebview = true;
 
     private final RepoLoader repoLoader = RepoLoader.getInstance();
     private RepoAdapter adapter;
@@ -96,7 +109,7 @@ public class RepoFragment extends BaseFragment implements RepoLoader.Listener {
         adapter.setHasStableIds(true);
         binding.recyclerView.setAdapter(adapter);
         binding.recyclerView.setHasFixedSize(true);
-        binding.recyclerView.setLayoutManager(new LinearLayoutManagerFix(requireActivity()));
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
         RecyclerViewKt.fixEdgeEffect(binding.recyclerView, false, true);
         binding.progress.setVisibilityAfterHide(View.GONE);
         repoLoader.addListener(this);
@@ -116,20 +129,29 @@ public class RepoFragment extends BaseFragment implements RepoLoader.Listener {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onDestroyView() {
+        super.onDestroyView();
+
+        mHandler.removeCallbacksAndMessages(null);
         repoLoader.removeListener(this);
+        binding = null;
     }
 
     @Override
     public void onResume() {
         super.onResume();
         adapter.initData();
+        if (preLoadWebview) {
+            mHandler.postDelayed(() -> {
+                new WebView(requireContext());
+            }, 500);
+            preLoadWebview = false;
+        }
     }
 
     @Override
     public void repoLoaded() {
-        requireActivity().runOnUiThread(() -> {
+        runOnUiThread(() -> {
             binding.progress.hide();
             adapter.setData(repoLoader.getOnlineModules());
         });
@@ -183,6 +205,24 @@ public class RepoFragment extends BaseFragment implements RepoLoader.Listener {
             if (summary != null) {
                 sb.append("\n");
                 sb.append(summary);
+            }
+            ModuleUtil.InstalledModule installedModule = ModuleUtil.getInstance().getModule(module.getName());
+            if (installedModule != null) {
+                var ver = repoLoader.getModuleLatestVersion(installedModule.packageName);
+                if (ver != null && ver.first > installedModule.versionCode) {
+                    sb.append("\n");
+                    String recommended = getString(R.string.update_available, ver.second);
+                    sb.append(recommended);
+                    final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourcesKt.resolveColor(requireActivity().getTheme(), androidx.appcompat.R.attr.colorAccent));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        final TypefaceSpan typefaceSpan = new TypefaceSpan(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+                        sb.setSpan(typefaceSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    } else {
+                        final StyleSpan styleSpan = new StyleSpan(Typeface.BOLD);
+                        sb.setSpan(styleSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                    }
+                    sb.setSpan(foregroundColorSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                }
             }
             holder.appDescription.setText(sb);
             holder.itemView.setOnClickListener(v -> {
