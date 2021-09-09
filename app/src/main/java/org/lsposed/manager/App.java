@@ -26,10 +26,10 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Process;
 import android.system.Os;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.StringRes;
 import androidx.preference.PreferenceManager;
 
 import com.google.gson.JsonParser;
@@ -59,6 +59,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import rikka.material.app.DayNightDelegate;
+import rikka.material.app.LocaleDelegate;
 
 public class App extends Application {
 
@@ -133,6 +134,7 @@ public class App extends Application {
         }
         DayNightDelegate.setApplicationContext(this);
         DayNightDelegate.setDefaultNightMode(ThemeUtil.getDarkTheme());
+        LocaleDelegate.setDefaultLocale(getLocale());
 
         loadRemoteVersion();
         RepoLoader.getInstance().loadRemoteData();
@@ -217,5 +219,13 @@ public class App extends Application {
             return code > BuildConfig.VERSION_CODE;
         }
         return buildTime.atOffset(ZoneOffset.UTC).plusDays(30).toInstant().isBefore(now);
+    }
+
+    public static Locale getLocale() {
+        String tag = getPreferences().getString("language", null);
+        if (TextUtils.isEmpty(tag) || "SYSTEM".equals(tag)) {
+            return Locale.getDefault();
+        }
+        return Locale.forLanguageTag(tag);
     }
 }

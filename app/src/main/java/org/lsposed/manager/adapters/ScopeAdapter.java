@@ -85,6 +85,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import rikka.core.util.ResourceUtils;
 import qingyan.util.lsp.LspUtil;
 import rikka.core.res.ResourcesKt;
 import rikka.widget.switchbar.SwitchBar;
@@ -345,8 +346,6 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
         return true;
     }
 
-
-
     public void onPrepareOptionsMenu(@NonNull Menu menu) {
         Intent intent = AppHelper.getSettingsIntent(module.packageName, module.userId);
         if (intent == null) {
@@ -424,7 +423,7 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
             if (!android) sb.append("\n");
             String recommended = activity.getString(R.string.requested_by_module);
             sb.append(recommended);
-            final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourcesKt.resolveColor(activity.getTheme(), androidx.appcompat.R.attr.colorAccent));
+            final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(activity.getTheme(), androidx.appcompat.R.attr.colorAccent));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 final TypefaceSpan typefaceSpan = new TypefaceSpan(Typeface.create("sans-serif-medium", Typeface.NORMAL));
                 sb.setSpan(typefaceSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
@@ -509,7 +508,6 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
             HashSet<ApplicationWithEquals> installedList = new HashSet<>();
             List<String> scopeList = module.getScopeList();
             boolean emptyCheckedList = checkedList.isEmpty();
-//            sortAppsPackageInfo(appList);
             for (PackageInfo info : appList) {
                 int userId = info.applicationInfo.uid / 100000;
                 String packageName = info.packageName;
