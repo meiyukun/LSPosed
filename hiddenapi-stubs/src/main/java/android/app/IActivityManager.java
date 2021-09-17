@@ -95,8 +95,12 @@ public interface IActivityManager extends IInterface {
     boolean switchUser(int userid) throws RemoteException;
 
     UserInfo getCurrentUser() throws RemoteException;
+
+    void setActivityController(IActivityController watcher, boolean imAMonkey) throws RemoteException;
+
     ParceledListSlice getRecentTasks(int maxNum, int flags, int userId) throws RemoteException;
     abstract class Stub extends Binder implements IActivityManager {
+        public static int TRANSACTION_setActivityController;
 
         public static IActivityManager asInterface(IBinder obj) {
             throw new UnsupportedOperationException();
