@@ -12,6 +12,8 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ProviderInfo;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.Process;
 import android.os.RemoteException;
@@ -23,7 +25,10 @@ import android.webkit.WebViewFactoryProvider;
 import org.lsposed.lspd.BuildConfig;
 import org.lsposed.lspd.ILSPManagerService;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.lang.reflect.Method;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +48,17 @@ public class ParasiticManagerHooker {
         if (managerPkgInfo == null) {
             Context ctx = ActivityThread.currentActivityThread().getSystemContext();
             var sourceDir = "/proc/self/fd/" + managerFd;
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+                var dstDir = appInfo.dataDir + "/cache/lsposed.apk";
+                try (var inStream = new FileInputStream(sourceDir); var outStream = new FileOutputStream(dstDir)) {
+                    FileChannel inChannel = inStream.getChannel();
+                    FileChannel outChannel = outStream.getChannel();
+                    inChannel.transferTo(0, inChannel.size(), outChannel);
+                    sourceDir = dstDir;
+                } catch (Throwable e) {
+                    Hookers.logE("copy apk", e);
+                }
+            }
             managerPkgInfo = ctx.getPackageManager().getPackageArchiveInfo(sourceDir, PackageManager.GET_ACTIVITIES);
             var newAppInfo = managerPkgInfo.applicationInfo;
             newAppInfo.sourceDir = sourceDir;
@@ -51,6 +67,7 @@ public class ParasiticManagerHooker {
             newAppInfo.packageName = appInfo.packageName;
             newAppInfo.dataDir = HiddenApiBridge.ApplicationInfo_credentialProtectedDataDir(appInfo);
             newAppInfo.deviceProtectedDataDir = appInfo.deviceProtectedDataDir;
+            newAppInfo.processName = appInfo.processName;
             HiddenApiBridge.ApplicationInfo_credentialProtectedDataDir(newAppInfo, HiddenApiBridge.ApplicationInfo_credentialProtectedDataDir(appInfo));
             newAppInfo.uid = appInfo.uid;
         }
@@ -58,6 +75,32 @@ public class ParasiticManagerHooker {
     }
 
     private static void hookForManager(ILSPManagerService managerService) {
+        var managerApkHooker = new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) {
+                Hookers.logD("ActivityThread#handleBindApplication() starts");
+                Object bindData = param.args[0];
+                ApplicationInfo appInfo = (ApplicationInfo) XposedHelpers.getObjectField(bindData, "appInfo");
+                XposedHelpers.setObjectField(bindData, "appInfo", getManagerPkgInfo(appInfo).applicationInfo);
+            }
+        };
+        XposedHelpers.findAndHookMethod(ActivityThread.class,
+                "handleBindApplication",
+                "android.app.ActivityThread$AppBindData",
+                managerApkHooker);
+
+        var unhooks = new XC_MethodHook.Unhook[]{null};
+        unhooks[0] = XposedHelpers.findAndHookMethod(
+                LoadedApk.class, "getClassLoader", new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) {
+                        if (XposedHelpers.getObjectField(param.thisObject, "mApplicationInfo") == getManagerPkgInfo(null).applicationInfo) {
+                            InstallerVerifier.sendBinderToManager((ClassLoader) param.getResult(), managerService.asBinder());
+                            unhooks[0].unhook();
+                        }
+                    }
+                });
+
         var activityHooker = new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
@@ -79,34 +122,14 @@ public class ParasiticManagerHooker {
                 }
             }
         };
-        var managerApkHooker = new XC_MethodHook() {
-            @Override
-            protected void beforeHookedMethod(MethodHookParam param) {
-                Hookers.logD("ActivityThread#handleBindApplication() starts");
-                Object bindData = param.args[0];
-                ApplicationInfo appInfo = (ApplicationInfo) XposedHelpers.getObjectField(bindData, "appInfo");
-                XposedHelpers.setObjectField(bindData, "appInfo", getManagerPkgInfo(appInfo).applicationInfo);
-                XposedHelpers.setObjectField(bindData, "providers", new ArrayList<>());
-            }
-        };
-        XposedHelpers.findAndHookMethod(ActivityThread.class,
-                "handleBindApplication",
-                "android.app.ActivityThread$AppBindData",
-                managerApkHooker);
+        var activityClientRecordClass = XposedHelpers.findClass("android.app.ActivityThread$ActivityClientRecord", ActivityThread.class.getClassLoader());
+        XposedBridge.hookAllConstructors(activityClientRecordClass, activityHooker);
 
-        XposedBridge.hookAllConstructors(ActivityThread.ActivityClientRecord.class, activityHooker);
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+            XposedBridge.hookAllMethods(XposedHelpers.findClass("android.app.ActivityThread$ApplicationThread", ActivityThread.class.getClassLoader()), "scheduleLaunchActivity", activityHooker);
+        }
 
-        var unhooks = new XC_MethodHook.Unhook[]{null};
-        unhooks[0] = XposedHelpers.findAndHookMethod(
-                LoadedApk.class, "getClassLoader", new XC_MethodHook() {
-                    @Override
-                    protected void afterHookedMethod(MethodHookParam param) {
-                        if (XposedHelpers.getObjectField(param.thisObject, "mApplicationInfo") == getManagerPkgInfo(null).applicationInfo) {
-                            InstallerVerifier.sendBinderToManager((ClassLoader) param.getResult(), managerService.asBinder());
-                            unhooks[0].unhook();
-                        }
-                    }
-                });
+        if (Process.myUid() != BuildConfig.MANAGER_INJECTED_UID) return;
 
         XposedBridge.hookAllMethods(ActivityThread.class, "handleReceiver", new XC_MethodReplacement() {
             @Override
@@ -119,8 +142,38 @@ public class ParasiticManagerHooker {
                 return null;
             }
         });
+        XposedBridge.hookAllMethods(ActivityThread.class, "installProvider", new XC_MethodHook() {
+            private Context originalContext = null;
 
-        XposedHelpers.findAndHookMethod(ActivityThread.class, "deliverNewIntents", ActivityThread.ActivityClientRecord.class, List.class, new XC_MethodHook() {
+            @Override
+            protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                Hookers.logD("before install provider");
+                Context ctx = null;
+                ProviderInfo info = null;
+                int ctxIdx = -1;
+                for (var i = 0; i < param.args.length; ++i) {
+                    var arg = param.args[i];
+                    if (arg instanceof Context) {
+                        ctx = (Context) arg;
+                        ctxIdx = i;
+                    } else if (arg instanceof ProviderInfo) info = (ProviderInfo) arg;
+                }
+                if (ctx != null && info != null) {
+                    if (originalContext == null) {
+                        info.applicationInfo.packageName = BuildConfig.MANAGER_INJECTED_PKG_NAME + ".origin";
+                        var originalPkgInfo = ActivityThread.currentActivityThread().getPackageInfoNoCheck(info.applicationInfo, HiddenApiBridge.Resources_getCompatibilityInfo(ctx.getResources()));
+                        XposedHelpers.setObjectField(originalPkgInfo, "mPackageName", BuildConfig.MANAGER_INJECTED_PKG_NAME);
+                        originalContext = (Context) XposedHelpers.callStaticMethod(XposedHelpers.findClass("android.app.ContextImpl", null), "createAppContext", ActivityThread.currentActivityThread(), originalPkgInfo);
+                        info.applicationInfo.packageName = BuildConfig.MANAGER_INJECTED_PKG_NAME;
+                    }
+                    param.args[ctxIdx] = originalContext;
+                } else {
+                    Hookers.logE("Failed to reload provider", new RuntimeException());
+                }
+            }
+        });
+
+        XposedHelpers.findAndHookMethod(ActivityThread.class, "deliverNewIntents", activityClientRecordClass, List.class, new XC_MethodHook() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 if (param.args[1] == null) return;
@@ -164,6 +217,7 @@ public class ParasiticManagerHooker {
 
     private static void checkIntent(ILSPManagerService managerService, Intent intent) {
         if (managerService == null) return;
+        if (Process.myUid() != BuildConfig.MANAGER_INJECTED_UID) return;
         if (intent.getCategories() == null || !intent.getCategories().contains("org.lsposed.manager.LAUNCH_MANAGER")) {
             Hookers.logD("Launching the original app, restarting");
             try {

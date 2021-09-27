@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.content.ContextWrapper;
 import android.content.pm.ApplicationInfo;
 import android.content.res.Resources;
+import android.os.UserHandle;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -13,17 +14,24 @@ import androidx.annotation.Nullable;
 import org.lsposed.lspd.service.ConfigFileManager;
 import org.lsposed.lspd.service.PackageService;
 
+import hidden.HiddenApiBridge;
+
 public class FakeContext extends ContextWrapper {
     static ApplicationInfo systemApplicationInfo = null;
     static Resources.Theme theme = null;
-
+    private String packageName = "android";
     public FakeContext() {
         super(null);
     }
 
+    public FakeContext(String packageName) {
+        super(null);
+        this.packageName = packageName;
+    }
+
     @Override
     public String getPackageName() {
-        return "android";
+        return packageName;
     }
 
     @Override
@@ -49,6 +57,10 @@ public class FakeContext extends ContextWrapper {
 
     public int getUserId() {
         return 0;
+    }
+
+    public UserHandle getUser() {
+        return HiddenApiBridge.UserHandle(0);
     }
 
     @Override

@@ -84,8 +84,6 @@ public class LSPManagerService extends ILSPManagerService.Stub {
     public static final String CHANNEL_NAME = "LSPosed Manager";
     public static final int CHANNEL_IMP = NotificationManager.IMPORTANCE_HIGH;
 
-    private static Icon managerIcon = null;
-    private static Icon notificationIcon = null;
     private static Intent managerIntent = null;
 
     public class ManagerGuard implements IBinder.DeathRecipient {
@@ -154,17 +152,15 @@ public class LSPManagerService extends ILSPManagerService.Stub {
     }
 
     private static Icon getManagerIcon() {
-        if (managerIcon == null) {
-            managerIcon = getIcon(org.lsposed.manager.R.mipmap.ic_launcher);
+        try {
+            return getIcon(org.lsposed.manager.R.mipmap.ic_launcher);
+        } catch (Throwable e) {
+            return getIcon(org.lsposed.manager.R.drawable.ic_launcher);
         }
-        return managerIcon;
     }
 
     private static Icon getNotificationIcon() {
-        if (notificationIcon == null) {
-            notificationIcon = getIcon(org.lsposed.manager.R.drawable.ic_extension);
-        }
-        return notificationIcon;
+        return getIcon(org.lsposed.manager.R.drawable.ic_extension);
     }
 
     private static Intent getManagerIntent() {
@@ -186,6 +182,7 @@ public class LSPManagerService extends ILSPManagerService.Stub {
                 }
                 if (intent.getCategories() != null) intent.getCategories().clear();
                 intent.addCategory("org.lsposed.manager.LAUNCH_MANAGER");
+                intent.setPackage(BuildConfig.MANAGER_INJECTED_PKG_NAME);
                 managerIntent = (Intent) intent.clone();
             }
         } catch (Throwable e) {
@@ -221,6 +218,9 @@ public class LSPManagerService extends ILSPManagerService.Stub {
                     org.lsposed.manager.R.string.xposed_module_updated_notification_content :
                     org.lsposed.manager.R.string.module_is_not_activated_yet_detailed, modulePackageName);
 
+            var style = new Notification.BigTextStyle();
+            style.bigText(content);
+
             var notification = new Notification.Builder(context, CHANNEL_ID)
                     .setContentTitle(title)
                     .setContentText(content)
@@ -228,6 +228,7 @@ public class LSPManagerService extends ILSPManagerService.Stub {
                     .setColor(context.getResources().getColor(org.lsposed.manager.R.color.color_primary))
                     .setContentIntent(getNotificationIntent(modulePackageName, moduleUserId))
                     .setAutoCancel(true)
+                    .setStyle(style)
                     .build();
             notification.extras.putString("android.substName", "LSPosed");
             var im = INotificationManager.Stub.asInterface(android.os.ServiceManager.getService("notification"));
@@ -237,24 +238,31 @@ public class LSPManagerService extends ILSPManagerService.Stub {
                     new android.content.pm.ParceledListSlice<>(Collections.singletonList(channel)));
             im.enqueueNotificationWithTag("android", "android", "114514", NOTIFICATION_ID, notification, 0);
         } catch (Throwable e) {
-            Log.e(TAG, "posted notification", e);
+            Log.e(TAG, "post notification", e);
         }
     }
 
     public static void createOrUpdateShortcut() {
         try {
+            while (!UserService.isUserUnlocked(0)) {
+                Log.d(TAG, "user is not yet unlocked, waiting for 1s...");
+                Thread.sleep(1000);
+            }
             var smCtor = ShortcutManager.class.getDeclaredConstructor(Context.class);
             smCtor.setAccessible(true);
-            var context = new FakeContext();
+            var context = new FakeContext("com.android.settings");
             var sm = smCtor.newInstance(context);
             if (!sm.isRequestPinShortcutSupported()) {
                 Log.d(TAG, "pinned shortcut not supported, skipping");
                 return;
             }
+            var intent = getManagerIntent();
             var shortcut = new ShortcutInfo.Builder(context, SHORTCUT_ID)
                     .setShortLabel("LSPosed")
                     .setLongLabel("LSPosed")
-                    .setIntent(getManagerIntent())
+                    .setIntent(intent)
+                    .setActivity(new ComponentName("com.android.settings", "android.__dummy__"))
+                    .setCategories(intent.getCategories())
                     .setIcon(getManagerIcon())
                     .build();
 
@@ -602,13 +610,13 @@ public class LSPManagerService extends ILSPManagerService.Stub {
 
     @Override
     public void setHiddenIcon(boolean hide) {
-        var settings = new ServiceShellCommand("settings");
-        var enable = hide ? "0" : "1";
-        var args = new String[]{"put", "global", "show_hidden_icon_apps_enabled", enable};
+        Bundle args = new Bundle();
+        args.putString("value", hide ? "0" : "1");
+        args.putString("_user", "0");
         try {
-            settings.shellCommand(FileDescriptor.in, FileDescriptor.out, FileDescriptor.err,
-                    args, new ResultReceiver(null));
-        } catch (RemoteException e) {
+            ActivityManagerService.getContentProvider("settings", 0)
+                    .call("android", null, "settings", "PUT_global", "show_hidden_icon_apps_enabled", args);
+        } catch (RemoteException | NullPointerException e) {
             Log.w(TAG, "setHiddenIcon: ", e);
         }
     }

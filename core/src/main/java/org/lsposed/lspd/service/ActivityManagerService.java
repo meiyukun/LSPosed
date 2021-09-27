@@ -26,11 +26,13 @@ import android.app.IActivityManager;
 import android.app.IApplicationThread;
 import android.app.IServiceConnection;
 import android.app.ProfilerInfo;
+import android.content.IContentProvider;
 import android.content.IIntentReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ParceledListSlice;
 import android.content.pm.UserInfo;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -164,6 +166,23 @@ public class ActivityManagerService {
         if (am == null) return null;
         return am.getCurrentUser();
     }
+
+    public static Configuration getConfiguration() throws RemoteException {
+        IActivityManager am = getActivityManager();
+        if (am == null) return null;
+        return am.getConfiguration();
+    }
+
+    public static IContentProvider getContentProvider(String auth, int userId) throws RemoteException {
+        IActivityManager am = getActivityManager();
+        if (am == null) return null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return am.getContentProviderExternal(auth, userId, token, null).provider;
+        } else {
+            return am.getContentProviderExternal(auth, userId, token).provider;
+        }
+    }
+
     public static ParceledListSlice<ActivityManager.RecentTaskInfo> getRecentTasks(int maxNum, int flags,
                                                                                    int userId) throws RemoteException {
         IActivityManager am = getActivityManager();
