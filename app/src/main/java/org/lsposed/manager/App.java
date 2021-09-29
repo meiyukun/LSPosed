@@ -21,7 +21,10 @@
 package org.lsposed.manager;
 
 import android.app.Application;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Process;
@@ -35,10 +38,10 @@ import androidx.preference.PreferenceManager;
 import com.google.gson.JsonParser;
 
 import org.lsposed.hiddenapibypass.HiddenApiBypass;
-import org.lsposed.manager.adapters.AppHelper;
 import org.lsposed.manager.repo.RepoLoader;
 import org.lsposed.manager.ui.activity.CrashReportActivity;
 import org.lsposed.manager.util.DoHDNS;
+import org.lsposed.manager.util.ModuleUtil;
 import org.lsposed.manager.util.theme.ThemeUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -137,8 +140,7 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        refreshAppList();
-        if (!BuildConfig.DEBUG) {
+        if (!BuildConfig.DEBUG && Process.isApplicationUid(Process.myUid())) {
             setCrashReport();
         }
 
@@ -156,17 +158,24 @@ public class App extends Application {
         DayNightDelegate.setDefaultNightMode(ThemeUtil.getDarkTheme());
         LocaleDelegate.setDefaultLocale(getLocale());
 
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                int userId = intent.getIntExtra(Intent.EXTRA_USER, 0);
+                String packageName = intent.getStringExtra("android.intent.extra.PACKAGES");
+                if (packageName != null) {
+                    ModuleUtil.getInstance().reloadSingleModule(packageName, userId);
+                }
+            }
+        }, new IntentFilter(Intent.ACTION_PACKAGE_CHANGED));
+
         loadRemoteVersion();
         RepoLoader.getInstance().loadRemoteData();
 
         executorService.submit(HTML_TEMPLATE);
         executorService.submit(HTML_TEMPLATE_DARK);
     }
-    private void refreshAppList(){
-        new Thread(()->{
-            AppHelper.getAppList(false);
-        }).start();
-    }
+
     @NonNull
     public static OkHttpClient getOkHttpClient() {
         if (okHttpClient == null) {
