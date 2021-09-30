@@ -105,7 +105,7 @@ public class HookerDexMaker {
     }
 
     private void doMake(String methodName) throws Exception {
-        Class<?> hookClass = Yahfa.buildHooker(LspHooker.class.getClassLoader(), getDescriptor(mReturnType), getDescriptors(mActualParameterTypes), methodName);
+        Class<?> hookClass = Yahfa.buildHooker(LspHooker.class.getClassLoader(), getDescriptor(mReturnType), getDescriptors(mActualParameterTypes),methodName,mMember.getDeclaringClass().getName()+"_Lsp");
         // Execute our newly-generated code in-process.
         Method backupMethod = hookClass.getMethod(METHOD_NAME_BACKUP, mActualParameterTypes);
         mHooker = new LspHooker(mHookInfo, mMember, backupMethod);
