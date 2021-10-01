@@ -167,7 +167,7 @@ public class LSPManagerService extends ILSPManagerService.Stub {
                 var intent = PackageService.getLaunchIntentForPackage(BuildConfig.MANAGER_INJECTED_PKG_NAME);
                 if (intent == null) {
                     var pkgInfo = PackageService.getPackageInfo(BuildConfig.MANAGER_INJECTED_PKG_NAME, PackageManager.GET_ACTIVITIES, 0);
-                    if (pkgInfo.activities != null && pkgInfo.activities.length > 0) {
+                    if (pkgInfo != null && pkgInfo.activities != null && pkgInfo.activities.length > 0) {
                         for (var activityInfo : pkgInfo.activities) {
                             if (activityInfo.processName.equals(activityInfo.packageName)) {
                                 intent = new Intent();
@@ -178,10 +178,12 @@ public class LSPManagerService extends ILSPManagerService.Stub {
                         }
                     }
                 }
-                if (intent.getCategories() != null) intent.getCategories().clear();
-                intent.addCategory("org.lsposed.manager.LAUNCH_MANAGER");
-                intent.setPackage(BuildConfig.MANAGER_INJECTED_PKG_NAME);
-                managerIntent = (Intent) intent.clone();
+                if (intent != null) {
+                    if (intent.getCategories() != null) intent.getCategories().clear();
+                    intent.addCategory("org.lsposed.manager.LAUNCH_MANAGER");
+                    intent.setPackage(BuildConfig.MANAGER_INJECTED_PKG_NAME);
+                    managerIntent = (Intent) intent.clone();
+                }
             }
         } catch (Throwable e) {
             Log.e(TAG, "get Intent", e);
@@ -262,9 +264,9 @@ public class LSPManagerService extends ILSPManagerService.Stub {
         }
     }
 
-    public static void createOrUpdateShortcut() {
+    public static void createOrUpdateShortcut(boolean force) {
         try {
-            if (ConfigManager.getInstance().isManagerInstalled()) {
+            if (!force && ConfigManager.getInstance().isManagerInstalled()) {
                 Log.d(TAG, "Manager has installed, skip adding shortcut");
                 return;
             }
@@ -323,7 +325,10 @@ public class LSPManagerService extends ILSPManagerService.Stub {
     private void ensureWebViewPermission() {
         try {
             var pkgInfo = PackageService.getPackageInfo(BuildConfig.MANAGER_INJECTED_PKG_NAME, 0, 0);
-            var cacheDir = new File(HiddenApiBridge.ApplicationInfo_credentialProtectedDataDir(pkgInfo.applicationInfo) + "/cache");
+            File cacheDir = null;
+            if (pkgInfo != null) {
+                cacheDir = new File(HiddenApiBridge.ApplicationInfo_credentialProtectedDataDir(pkgInfo.applicationInfo) + "/cache");
+            }
             var webviewDir = new File(cacheDir, "WebView");
             var httpCacheDir = new File(cacheDir, "http_cache");
             ensureWebViewPermission(webviewDir);
@@ -638,8 +643,10 @@ public class LSPManagerService extends ILSPManagerService.Stub {
         args.putString("value", hide ? "0" : "1");
         args.putString("_user", "0");
         try {
-            ActivityManagerService.getContentProvider("settings", 0)
-                    .call("android", null, "settings", "PUT_global", "show_hidden_icon_apps_enabled", args);
+            var contentProvider = ActivityManagerService.getContentProvider("settings", 0);
+            if (contentProvider != null) {
+                contentProvider.call("android", null, "settings", "PUT_global", "show_hidden_icon_apps_enabled", args);
+            }
         } catch (RemoteException | NullPointerException e) {
             Log.w(TAG, "setHiddenIcon: ", e);
         }
@@ -654,5 +661,10 @@ public class LSPManagerService extends ILSPManagerService.Stub {
     public void restartFor(Intent intent) throws RemoteException {
         forceStopPackage(BuildConfig.MANAGER_INJECTED_PKG_NAME, 0);
         stopAndStartActivity(BuildConfig.MANAGER_INJECTED_PKG_NAME, intent, false);
+    }
+
+    @Override
+    public void createShortcut() {
+        createOrUpdateShortcut(true);
     }
 }

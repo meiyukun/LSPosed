@@ -67,4 +67,7 @@ interface ILSPManagerService {
     Map<String,ParcelFileDescriptor> getLogs() = 35;
 
     void restartFor(in Intent intent) = 36;
+
+
+    void createShortcut() = 37;
 }
