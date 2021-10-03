@@ -22,13 +22,13 @@ package org.lsposed.manager.ui.activity.base;
 
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.Window;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import org.lsposed.manager.BuildConfig;
 import org.lsposed.manager.ConfigManager;
@@ -49,7 +49,7 @@ public class BaseActivity extends MaterialActivity {
         if (!ConfigManager.isBinderAlive()) return;
         var version = ConfigManager.getXposedVersionName();
         if (BuildConfig.VERSION_NAME.equals(version)) return;
-        new AlertDialog.Builder(this)
+        new MaterialAlertDialogBuilder(this)
                 .setMessage(BuildConfig.VERSION_NAME.compareTo(version) > 0 ?
                         R.string.outdated_core : R.string.outdated_manager)
                 .setPositiveButton(android.R.string.ok, (dialog, id) -> {
@@ -80,14 +80,8 @@ public class BaseActivity extends MaterialActivity {
         window.getDecorView().post(() -> {
             if (window.getDecorView().getRootWindowInsets().getSystemWindowInsetBottom() >= Resources.getSystem().getDisplayMetrics().density * 40) {
                 window.setNavigationBarColor(ResourceUtils.resolveColor(getTheme(), android.R.attr.navigationBarColor) & 0x00ffffff | -0x20000000);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    window.setNavigationBarContrastEnforced(false);
-                }
             } else {
                 window.setNavigationBarColor(Color.TRANSPARENT);
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    window.setNavigationBarContrastEnforced(true);
-                }
             }
         });
 
