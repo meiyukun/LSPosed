@@ -24,11 +24,12 @@ import com.android.ide.common.signing.KeystoreHelper
 import org.apache.commons.codec.binary.Hex
 import org.apache.tools.ant.filters.FixCrLfFilter
 import org.apache.tools.ant.filters.ReplaceTokens
+import java.io.ByteArrayOutputStream
+import java.io.FileOutputStream
 import java.io.PrintStream
 import java.security.MessageDigest
 import java.util.jar.JarFile
 import java.util.zip.ZipOutputStream
-import java.io.FileOutputStream
 
 plugins {
     id("com.android.application")
@@ -46,8 +47,12 @@ val moduleMaxRiruApiVersion = 25
 val injectedPackageName = "com.android.shell"
 val injectedPackageUid = 2000
 
+val agpVersion: String by rootProject.extra
+
 val defaultManagerPackageName: String by rootProject.extra
 val apiCode: Int by rootProject.extra
+val verCode: Int by rootProject.extra
+val verName: String by rootProject.extra
 
 val androidTargetSdkVersion: Int by rootProject.extra
 val androidMinSdkVersion: Int by rootProject.extra
@@ -57,14 +62,11 @@ val androidCompileNdkVersion: String by rootProject.extra
 val androidSourceCompatibility: JavaVersion by rootProject.extra
 val androidTargetCompatibility: JavaVersion by rootProject.extra
 
-val verCode: Int by rootProject.extra
-val verName: String by rootProject.extra
-
 dependencies {
     implementation("dev.rikka.ndk:riru:26.0.0")
     implementation("dev.rikka.ndk.thirdparty:cxx:1.1.0")
     implementation("io.github.vvb2060.ndk:dobby:1.2")
-    implementation("com.android.tools.build:apksig:7.0.2")
+    implementation("com.android.tools.build:apksig:$agpVersion")
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("de.upb.cs.swt:axml:2.1.1")
     compileOnly("androidx.annotation:annotation:1.2.0")
@@ -296,15 +298,43 @@ val pushLspd = task("pushLspd", Exec::class) {
 }
 val pushLspdNative = task("pushLspdNative", Exec::class) {
     dependsOn("mergeDebugNativeLibs")
-    workingDir("$buildDir/intermediates/merged_native_libs/debug/out/lib/arm64-v8a")
+    doFirst {
+        val abi: String = ByteArrayOutputStream().use { outputStream ->
+            exec {
+                commandLine(adb, "shell", "getprop", "ro.product.cpu.abi")
+                standardOutput = outputStream
+            }
+            outputStream.toString().trim()
+        }
+        workingDir("$buildDir/intermediates/merged_native_libs/debug/out/lib/$abi")
+    }
     commandLine(adb, "push", "libdaemon.so", "/data/local/tmp/libdaemon.so")
 }
-task("reRunLspd", Exec::class) {
+val reRunLspd = task("reRunLspd", Exec::class) {
     dependsOn(pushLspd)
     dependsOn(pushLspdNative)
     dependsOn(killLspd)
     commandLine(adb, "shell", "su", "-c", "sh /data/adb/modules/riru_lsposed/service.sh&")
     isIgnoreExitValue = true
+}
+val tmpApk = "/data/local/tmp/lsp.apk"
+val pushApk = task("pushApk", Exec::class) {
+    dependsOn(":app:assembleDebug")
+    workingDir("${project(":app").buildDir}/outputs/apk/debug")
+    commandLine(adb, "push", "LSPosedManager-v$verName-$verCode-debug.apk", tmpApk)
+}
+val openApp = task("openApp", Exec::class) {
+    commandLine(
+        adb, "shell", "am start -a android.intent.action.MAIN " +
+                "-c org.lsposed.manager.LAUNCH_MANAGER  " +
+                "com.android.shell/.BugreportWarningActivity"
+    )
+}
+task("reRunApp", Exec::class) {
+    dependsOn(pushApk)
+    commandLine(adb, "shell", "su", "-c", "mv -f $tmpApk /data/adb/lspd/manager.apk")
+    isIgnoreExitValue = true
+    finalizedBy(reRunLspd)
 }
 
 val generateVersion = task("generateVersion", Copy::class) {

@@ -318,7 +318,7 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
                 ConfigManager.startActivityAsUserWithFeature(launchIntent, module.userId);
             }
         } else if (itemId == R.id.menu_compile_speed) {
-            CompileDialogFragment.speed(fragment.getChildFragmentManager(), info);
+            CompileDialogFragment.speed(fragment.getChildFragmentManager(), info, fragment.binding.snackbar);
         } else if (itemId == R.id.menu_other_app) {
             var intent = new Intent(Intent.ACTION_SHOW_APP_INFO);
             intent.putExtra(Intent.EXTRA_PACKAGE_NAME, module.packageName);
@@ -418,9 +418,13 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
                     }
                 });
         SpannableStringBuilder sb = new SpannableStringBuilder(android ? "" : activity.getString(R.string.app_description, appInfo.packageName, appInfo.packageInfo.versionName));
-        holder.appDescription.setVisibility(View.VISIBLE);
+        if (android) holder.appDescription.setVisibility(View.GONE);
+        else {
+            holder.appDescription.setVisibility(View.VISIBLE);
+            holder.appDescription.setText(sb);
+            sb = new SpannableStringBuilder();
+        }
         if (!recommendedList.isEmpty() && recommendedList.contains(appInfo.application)) {
-            if (!android) sb.append("\n");
             String recommended = activity.getString(R.string.requested_by_module);
             sb.append(recommended);
             final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(activity.getTheme(), androidx.appcompat.R.attr.colorAccent));
@@ -432,10 +436,11 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
                 sb.setSpan(styleSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             }
             sb.setSpan(foregroundColorSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-        } else if (android) {
-            holder.appDescription.setVisibility(View.GONE);
+            holder.hint.setText(sb);
+            holder.hint.setVisibility(View.VISIBLE);
+        } else {
+            holder.hint.setVisibility(View.GONE);
         }
-        holder.appDescription.setText(sb);
 
         holder.itemView.setOnCreateContextMenuListener((menu, v, menuInfo) -> {
             activity.getMenuInflater().inflate(R.menu.menu_app_item, menu);
@@ -589,6 +594,7 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
         ImageView appIcon;
         TextView appName;
         TextView appDescription;
+        TextView hint;
         MaterialCheckBox checkbox;
 
         ViewHolder(ItemModuleBinding binding) {
@@ -598,6 +604,7 @@ public class ScopeAdapter extends RecyclerView.Adapter<ScopeAdapter.ViewHolder> 
             appName = binding.appName;
             appDescription = binding.description;
             checkbox = binding.checkbox;
+            hint = binding.hint;
             checkbox.setVisibility(View.VISIBLE);
         }
     }

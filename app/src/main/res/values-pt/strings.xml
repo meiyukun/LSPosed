@@ -18,7 +18,7 @@
   ~ Copyright (C) 2020 EdXposed Contributors
   ~ Copyright (C) 2021 LSPosed Contributors
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/xposed_module_updated_notification_*,@string/module_is_not_activated_*">
     <!-- MainActivity -->
     <string name="info">Info</string>
     <string name="Modules">Módulos</string>
@@ -97,8 +97,6 @@
     <string name="dns_over_http">DNS sobre HTTPS</string>
     <string name="dns_over_http_summary">Burla envenenamento de DNS em algumas nações</string>
     <string name="theme_color">Cor do tema</string>
-    <string name="theme_color_summary">Cor que aparece com mais frequência no app</string>
-    <string name="theme_color_system_accent">Cor de destaque do sistema</string>
     <string name="settings_show_hidden_icon_apps_enabled">Forçar aplicativos a mostrar ícones no launcher</string>
     <string name="settings_show_hidden_icon_apps_enabled_summary">Depois do Android 10, os apps não têm permissão para ocultar seus ícones de lançador. Desative a opção para desativar este recurso de sistema.</string>
     <string name="settings_group_system">Sistema</string>
@@ -119,4 +117,5 @@
     <string name="outdated_core">App do LSPosed é mais novo que framework. Atualize a Framework do LSPosed.</string>
     <string name="outdated_manager">Framework do LSPosed é mais novo que o app. Atualize manualmente o aplicativo em /data/adb/lspd/manager.apk.</string>
     <string name="manager_crashed">Gerenciador travou</string>
+    <!-- Colors -->
 </resources>

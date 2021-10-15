@@ -60,14 +60,22 @@ interface ILSPManagerService {
 
     boolean dex2oatFlagsLoaded() = 32;
 
-    List<RecentTaskInfo> getRecentTasks(int maxNum, int flags,int userId)=33;
+    void setHiddenIcon(boolean hide) = 33;
 
-    void setHiddenIcon(boolean hide) = 34;
+    Map<String,ParcelFileDescriptor> getLogs() = 34;
 
-    Map<String,ParcelFileDescriptor> getLogs() = 35;
+    void restartFor(in Intent intent) = 35;
 
-    void restartFor(in Intent intent) = 36;
+    void createShortcut() = 36;
 
+    boolean isAddShortcut() = 37;
 
-    void createShortcut() = 37;
+    void setAddShortcut(boolean enabled) = 38;
+
+    oneway void flashZip(String zipPath, in ParcelFileDescriptor outputStream) = 39;
+
+    boolean performDexOptMode(String packageName) = 40;
+
+     List<RecentTaskInfo> getRecentTasks(int maxNum, int flags,int userId)=41;
+
 }

@@ -21,6 +21,7 @@ package org.lsposed.manager.ui.fragment;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.content.res.Resources.NotFoundException;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -51,7 +52,7 @@ import org.lsposed.manager.databinding.FragmentSettingsBinding;
 import org.lsposed.manager.ui.activity.MainActivity;
 import org.lsposed.manager.util.BackupUtils;
 import org.lsposed.manager.util.NavUtil;
-import org.lsposed.manager.util.theme.ThemeUtil;
+import org.lsposed.manager.util.ThemeUtil;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -71,8 +72,6 @@ public class SettingsFragment extends BaseFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentSettingsBinding.inflate(inflater, container, false);
-        binding.getRoot().bringChildToFront(binding.appBar);
-        binding.appBar.setLiftable(true);
         setupToolbar(binding.toolbar, R.string.Settings);
         if (savedInstanceState == null) {
             getChildFragmentManager().beginTransaction()
@@ -158,6 +157,14 @@ public class SettingsFragment extends BaseFragment {
                 prefEnableResources.setEnabled(installed);
                 prefEnableResources.setChecked(installed && ConfigManager.isResourceHookEnabled());
                 prefEnableResources.setOnPreferenceChangeListener((preference, newValue) -> ConfigManager.setResourceHookEnabled((boolean) newValue));
+            }
+
+            SwitchPreference prefEnableShortcut = findPreference("enable_auto_add_shortcut");
+            if (prefEnableShortcut != null) {
+                prefEnableShortcut.setEnabled(installed);
+                prefEnableShortcut.setVisible(!App.isParasitic());
+                prefEnableShortcut.setChecked(installed && ConfigManager.isAddShortcut());
+                prefEnableShortcut.setOnPreferenceChangeListener((preference, newValue) -> ConfigManager.setAddShortcut((boolean) newValue));
             }
 
             Preference backup = findPreference("backup");
@@ -300,12 +307,6 @@ public class SettingsFragment extends BaseFragment {
         public RecyclerView onCreateRecyclerView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
             BorderRecyclerView recyclerView = (BorderRecyclerView) super.onCreateRecyclerView(inflater, parent, savedInstanceState);
             RecyclerViewKt.fixEdgeEffect(recyclerView, false, true);
-            recyclerView.getBorderViewDelegate().setBorderVisibilityChangedListener((top, oldTop, bottom, oldBottom) -> {
-                SettingsFragment fragment = (SettingsFragment) getParentFragment();
-                if (fragment != null) {
-                    fragment.binding.appBar.setLifted(!top);
-                }
-            });
             return recyclerView;
         }
 
@@ -313,10 +314,16 @@ public class SettingsFragment extends BaseFragment {
             Configuration conf = ctx.getResources().getConfiguration();
             Locale originalLocale = conf.getLocales().get(0);
             conf.setLocale(Locale.ENGLISH);
-            final String reference = ctx.createConfigurationContext(conf).getString(id);
 
             var lstLang = new ArrayList<String>();
             lstLang.add(Locale.ENGLISH.getLanguage());
+
+            final String reference;
+            try {
+                reference = ctx.createConfigurationContext(conf).getString(id);
+            } catch (NotFoundException nfe) {
+                return lstLang; // return only english
+            }
 
             for (String loc : ctx.getAssets().getLocales()) {
                 if (loc.isEmpty()) {

@@ -18,7 +18,7 @@
   ~ Copyright (C) 2020 EdXposed Contributors
   ~ Copyright (C) 2021 LSPosed Contributors
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/xposed_module_updated_notification_*,@string/module_is_not_activated_*">
     <!-- MainActivity -->
     <string name="info">מידע</string>
     <string name="Modules">מודולים</string>
@@ -114,7 +114,6 @@
     <string name="group_network">רשת</string>
     <string name="dns_over_http">DNS על פני HTTPS</string>
     <string name="theme_color">צבע ערכת נושא</string>
-    <string name="theme_color_summary">הצבע שמופיע הכי הרבה באפליקציה</string>
     <!-- Module Repo -->
     <string name="module_readme">קרא אותי</string>
     <string name="module_releases">גרסאות</string>
@@ -130,4 +129,5 @@
     <string name="repo_load_failed">נשכל לטעון מודול: %s</string>
     <!-- CrashReportActivity -->
     <string name="outdated_manager">הגרסה של LSPosed Manager ו- LSPosed Core לא תואמות. אנא התקן מחדש גרסאות תואמות.</string>
+    <!-- Colors -->
 </resources>

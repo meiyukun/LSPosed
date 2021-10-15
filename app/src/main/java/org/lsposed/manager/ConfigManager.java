@@ -159,6 +159,25 @@ public class ConfigManager {
         }
     }
 
+    public static boolean isAddShortcut() {
+        try {
+            return LSPManagerServiceHolder.getService().isAddShortcut();
+        } catch (RemoteException e) {
+            Log.e(App.TAG, Log.getStackTraceString(e));
+            return false;
+        }
+    }
+
+    public static boolean setAddShortcut(boolean enabled) {
+        try {
+            LSPManagerServiceHolder.getService().setAddShortcut(enabled);
+            return true;
+        } catch (RemoteException e) {
+            Log.e(App.TAG, Log.getStackTraceString(e));
+            return false;
+        }
+    }
+
     public static boolean isVerboseLogEnabled() {
         try {
             return LSPManagerServiceHolder.getService().isVerboseLog();
@@ -345,6 +364,14 @@ public class ConfigManager {
         } catch (RemoteException e) {
             Log.e(App.TAG, Log.getStackTraceString(e));
             return new HashMap<>();
+        }
+    }
+
+    public static void flashZip(String zipPath, ParcelFileDescriptor outputStream) {
+        try {
+            LSPManagerServiceHolder.getService().flashZip(zipPath, outputStream);
+        } catch (RemoteException e) {
+            Log.e(App.TAG, Log.getStackTraceString(e));
         }
     }
 }
