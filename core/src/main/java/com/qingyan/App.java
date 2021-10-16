@@ -9,6 +9,8 @@ import android.os.Build;
 import android.util.Log;
 
 
+import com.qingyan.xp.env.QXpManager;
+
 import org.apache.commons.io.FileUtils;
 import org.lsposed.lspd.BuildConfig;
 import org.lsposed.lspd.yahfa.hooker.YahfaHooker;
@@ -25,7 +27,7 @@ import qingyan.util.MyLog;
 import qingyan.util.UtilManager;
 
 /**
- * Created by Windysha
+ * Created by 青烟
  */
 @SuppressLint("UnsafeDynamicallyLoadedCode")
 public class App extends HotFixFullApplication {
@@ -39,7 +41,8 @@ public class App extends HotFixFullApplication {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         UtilManager.init(base, BuildConfig.DEBUG);
-        appContext = base;
+        appContext = base;base.getResources();
+        QXpManager.setAppContext(base);
         try {
             copyOriApk();
             doPrepare(base,getResDir());
@@ -104,11 +107,5 @@ public class App extends HotFixFullApplication {
 
     protected String getResDir() {
         return new File(appContext.getFilesDir().getPath() + "/ori_backup/" + "data/app/" + appContext.getPackageName() + "/base.apk").getPath();
-    }
-    public static ClassLoader getAppClassLoader(){
-        return appClassLoader;
-    }
-    public static ClassLoader getHostClassLoader(){
-        return App.class.getClassLoader();
     }
 }

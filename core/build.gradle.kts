@@ -82,6 +82,7 @@ dependencies {
     implementation("org.qingyan.plugins:free_reflection:3.1.0")
     implementation ("org.qingyan.plugins:qytoolj:1.0.0")
     implementation ("org.qingyan.plugins:qhot:1.0")
+    implementation ("org.qingyan.plugins:qyxpenv:1.0")
 
 }
 
