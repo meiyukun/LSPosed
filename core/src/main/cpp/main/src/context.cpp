@@ -120,7 +120,16 @@ namespace lspd {
         RegisterPendingHooks(env);
         RegisterNativeAPI(env);
     }
-
+    void Context::InitLess(JNIEnv* env) {
+        env->GetJavaVM(&vm_);
+        InitSymbolCache();
+        InstallInlineHooks();
+        auto cls = env->FindClass(kClassLinkerClassNameSlash.c_str());
+        class_linker_class_ = (jclass) env->NewGlobalRef(cls);
+        auto gcl_method_id = env->GetMethodID(env->GetObjectClass(cls), "getClassLoader", "()Ljava/lang/ClassLoader;");
+        inject_class_loader_ = env->CallObjectMethod(cls, gcl_method_id);
+        Init(env);
+    }
     ScopedLocalRef<jclass>
     Context::FindClassFromLoader(JNIEnv *env, jobject class_loader, std::string_view class_name) {
         if (class_loader == nullptr) return {env, nullptr};

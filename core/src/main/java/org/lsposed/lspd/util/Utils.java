@@ -32,7 +32,7 @@ import java.time.zone.ZoneRulesException;
 
 public class Utils {
 
-    public static final String LOG_TAG = "LSPosed";
+    public static final String LOG_TAG = "BugHook-LSP-Utils";
     public static final boolean isMIUI = !TextUtils.isEmpty(SystemProperties.get("ro.miui.ui.version.name"));
 
     public static void logD(Object msg) {

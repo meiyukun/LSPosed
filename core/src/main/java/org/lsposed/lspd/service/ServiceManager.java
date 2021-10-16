@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import hidden.HiddenApiBridge;
 
 public class ServiceManager {
-    public static final String TAG = "LSPosedService";
+    public static final String TAG = "LSPosedService-BugHook";
     private static final ConcurrentHashMap<String, LSPModuleService> moduleServices = new ConcurrentHashMap<>();
     private static final File globalNamespace = new File("/proc/1/root");
     @SuppressWarnings("FieldCanBeLocal")

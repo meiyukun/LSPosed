@@ -86,11 +86,10 @@ public class LoadedApkGetCLHooker extends XC_MethodHook {
             lpparam.appInfo = loadedApk.getApplicationInfo();
             lpparam.isFirstApplication = this.isFirstApplication;
 
-            IBinder moduleBinder = serviceClient.requestModuleBinder(lpparam.packageName);
-            if (moduleBinder != null) {
-                hookNewXSP(lpparam);
-            }
 
+            if (unhook != null) {
+                unhook.unhook();
+            }
             XC_LoadPackage.callAll(lpparam);
 
         } catch (Throwable t) {

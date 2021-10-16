@@ -94,7 +94,7 @@ namespace lspd {
     }
 
     LSP_DEF_NATIVE_METHOD(jclass, Yahfa, buildHooker, jobject app_class_loader, jchar return_class,
-                          jcharArray classes, jstring method_name) {
+                          jcharArray classes, jstring method_name, jstring target_class_name) {
         static auto *kInMemoryClassloader = JNI_NewGlobalRef(env, JNI_FindClass(env,
                                                                                 "dalvik/system/InMemoryDexClassLoader"));
         static jmethodID kInitMid = JNI_GetMethodID(env, kInMemoryClassloader, "<init>",
@@ -114,8 +114,8 @@ namespace lspd {
                     params[i] == 'L' ? TypeDescriptor::Object : TypeDescriptor::FromDescriptor(
                             (char) params[i]));
         }
-
-        ClassBuilder cbuilder{dex_file.MakeClass("LspHooker_")};
+        auto clz_name= env->GetStringUTFChars(target_class_name,nullptr);
+        ClassBuilder cbuilder{dex_file.MakeClass(clz_name)};
         cbuilder.set_source_file("LSP");
 
         auto hooker_type =
@@ -194,7 +194,7 @@ namespace lspd {
             kMid = JNI_GetMethodID(env, kInMemoryClassloader, "findClass",
                                    "(Ljava/lang/String;)Ljava/lang/Class;");
         }
-        auto target = JNI_CallObjectMethod(env, my_cl, kMid, env->NewStringUTF("LspHooker_"));
+        auto target = JNI_CallObjectMethod(env, my_cl, kMid, target_class_name);
 //        LOGD("Created %zd", image.size());
         if (target) {
             return (jclass) target.release();
@@ -210,7 +210,7 @@ namespace lspd {
                               "(Ljava/lang/reflect/Executable;Ljava/lang/reflect/Method;Ljava/lang/reflect/Method;Z)Z"),
             LSP_NATIVE_METHOD(Yahfa, isHooked, "(Ljava/lang/reflect/Executable;)Z"),
             LSP_NATIVE_METHOD(Yahfa, buildHooker,
-                              "(Ljava/lang/ClassLoader;C[CLjava/lang/String;)Ljava/lang/Class;"),
+                              "(Ljava/lang/ClassLoader;C[CLjava/lang/String;Ljava/lang/String;)Ljava/lang/Class;"),
     };
 
     void RegisterYahfa(JNIEnv *env) {

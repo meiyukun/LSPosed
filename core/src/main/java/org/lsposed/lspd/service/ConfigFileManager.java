@@ -66,7 +66,7 @@ public class ConfigFileManager {
             Files.createDirectories(configDirPath);
             Files.createDirectories(logDirPath);
         } catch (IOException e) {
-            Log.e(TAG, Log.getStackTraceString(e));
+//            Log.e(TAG, Log.getStackTraceString(e));
         }
     }
 
@@ -217,13 +217,13 @@ public class ConfigFileManager {
     }
 
     @Nullable
-    static PreLoadedApk loadModule(String path) {
+    public static PreLoadedApk loadModule(String path) {
         if (path == null) return null;
         var file = new PreLoadedApk();
         var preLoadedDexes = new ArrayList<SharedMemory>();
         var moduleClassNames = new ArrayList<String>(1);
         var moduleLibraryNames = new ArrayList<String>(1);
-        try (var apkFile = new ZipFile(toGlobalNamespace(path))) {
+        try (var apkFile = new ZipFile(path)) {
             readDexes(apkFile, preLoadedDexes);
             readName(apkFile, "assets/xposed_init", moduleClassNames);
             readName(apkFile, "assets/native_init", moduleLibraryNames);

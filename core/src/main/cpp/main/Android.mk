@@ -4,8 +4,8 @@ define walk
 endef
 
 include $(CLEAR_VARS)
-LOCAL_MODULE           := lspd
-LOCAL_C_INCLUDES       := $(LOCAL_PATH)/include $(LOCAL_PATH)/src
+LOCAL_MODULE           := patchs
+LOCAL_C_INCLUDES       := $(LOCAL_PATH)/include $(LOCAL_PATH)/src $(LOCAL_PATH)/src/hookapi
 FILE_LIST              := $(filter %.cpp, $(call walk, $(LOCAL_PATH)/src))
 LOCAL_SRC_FILES        := $(FILE_LIST:$(LOCAL_PATH)/%=%)
 LOCAL_STATIC_LIBRARIES := cxx yahfa riru dobby dex_builder

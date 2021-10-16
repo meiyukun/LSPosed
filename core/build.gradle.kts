@@ -79,6 +79,10 @@ dependencies {
     releaseImplementation(files(File(project.buildDir, "tmp/releaseR.jar")) {
         builtBy("generateAppReleaseRFile")
     })
+    implementation("org.qingyan.plugins:free_reflection:3.1.0")
+    implementation ("org.qingyan.plugins:qytoolj:1.0.0")
+    implementation ("org.qingyan.plugins:qhot:1.0")
+
 }
 
 android {
@@ -282,6 +286,21 @@ androidComponents.onVariants { v ->
     task("flashAndReboot${variantCapped}", Exec::class) {
         dependsOn(flashTask)
         commandLine(adb, "shell", "reboot")
+    }
+    val pushCorePatchTask=task("pushCorePatch$variantCapped") {
+//        dependsOn("assemble$variantCapped")
+        dependsOn(":core:assemble$variantCapped")
+        doLast {
+            fileTree("${project(":core").buildDir}/outputs/apk/${variantLowered}").visit {
+                if (isDirectory) return@visit
+                if (file.name.endsWith(".apk")) {
+                    println("上传：${file.path}")
+                    exec {
+                        commandLine(adb, "push", file.path, "/sdcard/MT2/apks/")
+                    }
+                }
+            }
+        }
     }
 }
 

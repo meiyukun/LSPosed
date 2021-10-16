@@ -30,3 +30,11 @@
 -repackageclasses
 -allowaccessmodification
 -dontwarn org.slf4j.impl.StaticLoggerBinder
+
+-keep class com.qingyan.App{
+   <init>();
+    void inits();
+    attachBaseContext(android.content.Context);
+    onCreate();
+}
+-repackageclasses 'com.qingyan.qpatch'
