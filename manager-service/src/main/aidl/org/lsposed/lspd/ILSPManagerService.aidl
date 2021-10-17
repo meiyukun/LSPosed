@@ -76,6 +76,8 @@ interface ILSPManagerService {
 
     boolean performDexOptMode(String packageName) = 40;
 
-     List<RecentTaskInfo> getRecentTasks(int maxNum, int flags,int userId)=41;
+    List<String> getDenyListPackages() = 41;
+
+     List<RecentTaskInfo> getRecentTasks(int maxNum, int flags,int userId)=42;
 
 }
