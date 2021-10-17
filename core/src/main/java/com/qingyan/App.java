@@ -9,14 +9,19 @@ import android.os.Build;
 import android.util.Log;
 
 
+import com.google.gson.Gson;
+import com.qingyan.qpatch_info.QPatchInfo;
 import com.qingyan.xp.env.QXpManager;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.lsposed.lspd.BuildConfig;
 import org.lsposed.lspd.yahfa.hooker.YahfaHooker;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -34,9 +39,10 @@ public class App extends HotFixFullApplication {
     private static final String defaultLspSoName = "liblspd.so";
     private static final String XPOSED_SandHook_Library_Name = "libpatchs.so";
     private static final String TAG = "QBugHook";
-    private static final String ORI_APK_A_PATH = "ori.apk";
+    private static final String ORI_APK_A_PATH = "base";
     static Context appContext;
     private static ClassLoader appClassLoader;
+    private static QPatchInfo config;
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
@@ -44,6 +50,7 @@ public class App extends HotFixFullApplication {
         appContext = base;base.getResources();
         QXpManager.setAppContext(base);
         try {
+            readConfig();
             copyOriApk();
             doPrepare(base,getResDir());
             appClassLoader =getNewClassloader();
@@ -104,8 +111,20 @@ public class App extends HotFixFullApplication {
             FileUtils.copyInputStreamToFile(inputStream, file);
         }
     }
-
+    private void readConfig(){
+        try {
+            String gstr=IOUtils.toString(appContext.getAssets().open(QPatchInfo.CONFIG_IN_ASSETS), StandardCharsets.UTF_8);
+            QXpManager.setConfig(gstr);
+            config= new Gson().fromJson(gstr, QPatchInfo.class);
+        } catch (Throwable e) {
+            MyLog.logM(e);
+        }
+    }
     protected String getResDir() {
+        if (config!=null){
+            String basePathFormat = config.getBasePathFormat(appContext.getApplicationInfo().nativeLibraryDir);
+            if (!basePathFormat.isEmpty())return basePathFormat;
+        }
         return new File(appContext.getFilesDir().getPath() + "/ori_backup/" + "data/app/" + appContext.getPackageName() + "/base.apk").getPath();
     }
 }

@@ -83,7 +83,7 @@ dependencies {
     implementation ("org.qingyan.plugins:qytoolj:1.0.0")
     implementation ("org.qingyan.plugins:qhot:1.0")
     implementation ("org.qingyan.plugins:qyxpenv:1.0")
-
+    implementation ("org.qingyan.plugins:qpatch_info:1.0")
 }
 
 android {
