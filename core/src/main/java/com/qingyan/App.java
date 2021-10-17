@@ -65,6 +65,7 @@ public class App extends HotFixFullApplication {
         try {
             readConfig();
             copyOriApk();
+            Log.e(TAG, "libPath: "+getDefaultBackupLibPath() );
             doPrepare(base,getResDir(),getDefaultBackupLibPath());
             appClassLoader =getNewClassloader();
             MyLog.logM("nativeLib= "+getDefaultBackupLibPath()+"\nloaderApp:"+appClassLoader);
@@ -139,9 +140,9 @@ public class App extends HotFixFullApplication {
         } catch (Throwable ignored) {
         }
         if (version < nowVer) {
-            releaseLib(true);
             InputStream inputStream = appContext.getAssets().open(ORI_APK_A_PATH);
             FileUtils.copyInputStreamToFile(inputStream, file);
+            releaseLib(true);
         }else {
             releaseLib(false);
         }
