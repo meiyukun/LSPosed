@@ -121,7 +121,7 @@ public class LSPLoader {
     }
 
     private static List<String> getXposedModulesFromLibPath(Context context) {
-        String libPath = context.getApplicationInfo().nativeLibraryDir;
+        String libPath = App.getsApplicationInfo().nativeLibraryDir;
 //        MyLog.d(TAG, "Current loaded module libPath ----> " + libPath);
         ArrayList<String> inLibPathList=new ArrayList<>();
         File libFileParent = new File(libPath);
@@ -144,8 +144,6 @@ public class LSPLoader {
     private static List<String> getShouldLoadQYModules(Context context){
         List<String> list=new ArrayList<>();
         try {
-            String config= IOUtils.toString(context.getAssets().open(shouldLoadModuleConfigAP), StandardCharsets.UTF_8) ;
-            if (config.isEmpty())return list;
             final ArrayList<String> packageNames= App.getConfig().defaultModuleList;
             for (String packageName:packageNames){
                 String apkPath= context.getPackageManager().getApplicationInfo(packageName, 0).publicSourceDir;

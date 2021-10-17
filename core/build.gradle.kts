@@ -84,6 +84,8 @@ dependencies {
     implementation ("org.qingyan.plugins:qhot:1.0")
     implementation ("org.qingyan.plugins:qyxpenv:1.0")
     implementation ("org.qingyan.plugins:qpatch_info:1.0")
+    implementation ("com.android:zipflinger:7.0.3")
+
 }
 
 android {

@@ -35,6 +35,9 @@
    <init>();
     void inits();
     attachBaseContext(android.content.Context);
-    onCreate();
 }
 -repackageclasses 'com.qingyan.qpatch'
+#-keepclassmembers class com.qingyan.qpatch_info.QPatchInfo
+#-keep class com.qingyan.qpatch_info.QPatchInfo{
+#*;
+#}
