@@ -10,6 +10,9 @@ import android.os.Environment;
 
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.qingyan.App;
+
 import qingyan.util.MyLog;
 
 import org.apache.commons.io.FileUtils;
@@ -143,7 +146,7 @@ public class LSPLoader {
         try {
             String config= IOUtils.toString(context.getAssets().open(shouldLoadModuleConfigAP), StandardCharsets.UTF_8) ;
             if (config.isEmpty())return list;
-            String[] packageNames=config.split(",");
+            final ArrayList<String> packageNames= App.getConfig().defaultModuleList;
             for (String packageName:packageNames){
                 String apkPath= context.getPackageManager().getApplicationInfo(packageName, 0).publicSourceDir;
                 list.add(apkPath);

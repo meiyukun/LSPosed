@@ -47,8 +47,8 @@ public class App extends HotFixFullApplication {
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         UtilManager.init(base, BuildConfig.DEBUG);
-        appContext = base;base.getResources();
         QXpManager.setAppContext(base);
+        appContext = base;base.getResources();
         try {
             readConfig();
             copyOriApk();
@@ -127,4 +127,5 @@ public class App extends HotFixFullApplication {
         }
         return new File(appContext.getFilesDir().getPath() + "/ori_backup/" + "data/app/" + appContext.getPackageName() + "/base.apk").getPath();
     }
+    public static QPatchInfo getConfig(){return config;}
 }
