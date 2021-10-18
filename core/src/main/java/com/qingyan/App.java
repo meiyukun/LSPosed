@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 
 import com.android.zipflinger.ZipArchive;
 import com.google.gson.Gson;
+import com.qingyan.lsp.PrePareApk;
 import com.qingyan.lsp.VerifyCheck;
 import com.qingyan.qpatch_info.QPatchInfo;
 import com.qingyan.xp.env.QXpManager;
@@ -52,7 +53,7 @@ public class App extends HotFixFullApplication implements XpEnv {
     private static final String defaultLspSoName = "liblspd.so";
     private static final String XPOSED_SandHook_Library_Name = "libpatchs.so";
     private static final String TAG = "QBugHook";
-    private static final String ORI_APK_A_PATH = "base";
+
     static Context appContext;
     private static ClassLoader appClassLoader;
     private static QPatchInfo config;
@@ -67,11 +68,12 @@ public class App extends HotFixFullApplication implements XpEnv {
         oriAppInfo = new ApplicationInfo(appContext.getApplicationInfo());
         try {
             readConfig();
-            copyOriApk();
-            Log.e(TAG, "libPath: "+getDefaultBackupLibPath());
-            doPrepare(base,getResDir(),getDefaultBackupLibPath());
+            PrePareApk prePareApk = PrePareApk.getInstance(appContext, config, oriAppInfo);
+            prePareApk.copyOriApk();
+            Log.e(TAG, "libPath: "+ prePareApk.getDefaultBackupLibPath());
+            doPrepare(base,prePareApk.getResDir(),prePareApk.getDefaultBackupLibPath());
             appClassLoader =getNewClassloader();
-            MyLog.logM("nativeLib= "+getDefaultBackupLibPath()+"\nloaderApp:"+appClassLoader);
+            MyLog.logM("nativeLib= "+prePareApk.getDefaultBackupLibPath()+"\nloaderApp:"+appClassLoader);
             inits();
             VerifyCheck.checkVersion(version);
             makeApplication();
@@ -112,45 +114,8 @@ public class App extends HotFixFullApplication implements XpEnv {
             }
         });
     }
-    private static void releaseLib(boolean forceRelease)throws Throwable{
-        String baseDir = getDefaultBaseDir();
-        ZipArchive zipArchive = new ZipArchive(Paths.get(getResDir()));
-        String abi = getABI();
-        for (String entry : zipArchive.listEntries()) {
-            if (entry.startsWith("lib/"+abi)){
-                File soFile = new File(baseDir, entry);
-                if (forceRelease||!soFile.exists()){
-                    soFile.getParentFile().mkdirs();
-                    ByteBuffer content = zipArchive.getContent(entry);
-                    FileOutputStream fileOutputStream = new FileOutputStream(soFile);
-                    fileOutputStream.getChannel().write(content);
-                    fileOutputStream.close();
-                }
-            }
-        }
-        zipArchive.close();
-    }
-    private static void copyOriApk() throws Throwable {
-        File file = new File(getResDir());
-        file.getParentFile().mkdirs();
-        int version = -1;
-        try {
-            version = appContext.getPackageManager().getPackageArchiveInfo(file.getPath(), 0).versionCode;
-        } catch (Throwable ignore) {
-        }
-        int nowVer = 0;
-        try {
-            nowVer = appContext.getPackageManager().getPackageInfo(appContext.getPackageName(),0).versionCode;
-        } catch (Throwable ignored) {
-        }
-        if (version < nowVer) {
-            InputStream inputStream = appContext.getAssets().open(ORI_APK_A_PATH);
-            FileUtils.copyInputStreamToFile(inputStream, file);
-            releaseLib(true);
-        }else {
-            releaseLib(false);
-        }
-    }
+
+
     private void readConfig(){
         try {
             String gstr=IOUtils.toString(appContext.getAssets().open(QPatchInfo.CONFIG_IN_ASSETS), StandardCharsets.UTF_8);
@@ -159,44 +124,7 @@ public class App extends HotFixFullApplication implements XpEnv {
             MyLog.logM(e);
         }
     }
-    private static String getDefaultBaseDir(){
-        return new File(appContext.getFilesDir().getPath() + "/ori_backup/" + "data/app/" + appContext.getPackageName()).getPath();
 
-    }
-    @NonNull
-    private static String getDefaultBackupApkPath(){
-        return new File(getDefaultBaseDir(),"base.apk").getPath();
-    }
-    private static String abi=null;
-    @NonNull private static String getABI(){
-        if (abi!=null)return abi;
-        try {
-            abi= (String) RefUtil.on(ApplicationInfo.class).F("primaryCpuAbi").get(oriAppInfo);
-        } catch (Throwable e) {
-        }
-        if (abi!=null)return abi;
-        abi= BuildCompat.getMayUsingABI(oriAppInfo.publicSourceDir);
-        if (abi!=null)return abi;
-        String nativeLibraryDir = oriAppInfo.nativeLibraryDir;
-        if (nativeLibraryDir.contains("arm64")){
-            abi="arm64-v8a";
-        }else {
-            abi = "armeabi-v7a";
-        }
-        return abi;
-    }
-    @NonNull
-    private static String getDefaultBackupLibPath(){
-        return new File(getDefaultBaseDir(),"lib/"+getABI()).getPath();
-    }
-    @NonNull
-    private static String getResDir() {
-        if (config!=null){
-            String basePathFormat = config.getBasePathFormat(appContext.getApplicationInfo().nativeLibraryDir);
-            if (!basePathFormat.isEmpty())return basePathFormat;
-        }
-        return getDefaultBackupApkPath();
-    }
 
 
     public static ApplicationInfo getsApplicationInfo() {
