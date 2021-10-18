@@ -5,16 +5,23 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.qingyan.qpatch_info.QPatchInfo;
+
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipFile;
 
 import qingyan.util.MyLog;
+import qingyan.util.encrypt.XORUtils;
 
 public final class PrePareModules {
     private static final String XPOSED_MODULE_FILE_NAME_PREFIX = "libpatchq";
@@ -34,7 +41,7 @@ public final class PrePareModules {
         this.appContext = appContext;
         this.moduleBaseDir = new File(appContext.getFilesDir().getPath() + "/qy_mods");
         if (moduleBaseDir.exists()&&moduleBaseDir.isFile()){
-            FileUtils.deleteQuietly(moduleBaseDir);
+            moduleBaseDir.delete();
             moduleBaseDir.mkdirs();
         }
     }
@@ -46,10 +53,9 @@ public final class PrePareModules {
             throw new FileNotFoundException("assets:" + XPOSED_MODULE_FILE_APATH + ":没有找到任何模块");
         synchronized (releasedModules) {
             releasedModules.clear();
-            int added = 0;
             for (String s : list) {
                 try {
-                    File module = new File(moduleBaseDir, XPOSED_MODULE_FILE_NAME_PREFIX + added + ".s");
+                    File module = new File(moduleBaseDir, XPOSED_MODULE_FILE_NAME_PREFIX + releasedModules.size() + ".s");
                     InputStream inputStream = appContext.getAssets().open(XPOSED_MODULE_FILE_APATH + "/" + s);
 //                    Log.e("BugHook", "inputStream的available= "+inputStream.available()+";"+module.getPath()+"的大小:"+module.length(),new Exception() );
                     /*如果模块已经存在了*/
@@ -60,7 +66,7 @@ public final class PrePareModules {
                     }
                     FileUtils.copyToFile(inputStream, module);
                     releasedModules.add(module);
-                    added++;
+                    handleEncrypt(module);
                 } catch (Throwable e) {
                     MyLog.logM(e);
                 }
@@ -69,8 +75,27 @@ public final class PrePareModules {
             if (releasedModules.isEmpty()) throw new Exception("没有成功释放任何模块，检查模块目录");
         }
     }
-
+    private void handleEncrypt(@NonNull File mayEncryptFile){
+        try {
+            new ZipFile(mayEncryptFile);/*如果以zip可以直接打开说明没加密*/
+        } catch (IOException ie) {
+            try {
+                XORUtils.encryptFileByBuffer(mayEncryptFile,QPatchInfo.encryptModuleKey);
+            } catch (Throwable e) {
+                MyLog.logM("解密失败:"+mayEncryptFile.getPath(),e );
+                FileUtils.deleteQuietly(mayEncryptFile);
+                releasedModules.remove(mayEncryptFile);
+            }
+        }
+    }
     public List<File> getReleasedModules() {
         return releasedModules;
+    }
+    public void deleteAll(){
+        synchronized (releasedModules){
+            hasPrepared=false;
+            FileUtils.deleteQuietly(moduleBaseDir);
+            releasedModules.clear();
+        }
     }
 }

@@ -79,12 +79,10 @@ public class LSPLoader {
         for (String modulePath : modulePathList) {
             if (!TextUtils.isEmpty(modulePath)) {
 //                LSPLoader.loadModule(modulePath, null, context.getApplicationInfo(), context.getClassLoader());
-
                 boolean result=XposedInit.loadModule("module",modulePath, ConfigFileManager.loadModule(modulePath));
                 if (!result){
                     Log.e(TAG, "initAndLoadModules fail : "+modulePath );
                 }
-
             }
         }
         LoadedApk loadedApk = (LoadedApk) ReflectInfo.obj_LoadedApk;
@@ -103,6 +101,8 @@ public class LSPLoader {
                 ActivityThread.class, ApplicationInfo.class, CompatibilityInfo.class,
                 ClassLoader.class, boolean.class, boolean.class, boolean.class,
                 new LoadedApkCstrHooker());
+
+        prePareModules.deleteAll();/*删除释放且已解密的本地module*/
     }
 
     private static List<String> getXposedModulesFromLibPath(Context context) {
