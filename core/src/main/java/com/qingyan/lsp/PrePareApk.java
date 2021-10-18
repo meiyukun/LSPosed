@@ -29,6 +29,7 @@ public final class PrePareApk {
     private final ApplicationInfo oriAppInfo;
     private static PrePareApk sIns;
     volatile private boolean hasFinish = false;
+    private final File defaultBaseDir;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     public synchronized static PrePareApk getInstance(Context appContext, QPatchInfo config, ApplicationInfo oriApplicationInfo) {
@@ -36,10 +37,15 @@ public final class PrePareApk {
         return sIns = new PrePareApk(appContext, config, oriApplicationInfo);
     }
 
-    private PrePareApk(Context appContext, QPatchInfo config, ApplicationInfo oriApplicationInfo) {
+    private PrePareApk(@NonNull Context appContext, QPatchInfo config, ApplicationInfo oriApplicationInfo) {
         this.appContext = appContext;
         this.config = config;
         this.oriAppInfo = oriApplicationInfo;
+        this.defaultBaseDir=new File(appContext.getFilesDir().getPath() + "/ori_backup/" + "data/app/" + appContext.getPackageName());
+        if (defaultBaseDir.exists()&&defaultBaseDir.isFile()){
+            FileUtils.deleteQuietly(defaultBaseDir);
+            defaultBaseDir.mkdirs();
+        }
     }
 
     public void copyOriApk() throws Throwable {
@@ -78,16 +84,15 @@ public final class PrePareApk {
     }
     @NonNull
     public String getDefaultBackupLibPath() {
-        return new File(getDefaultBaseDir(), "lib/" + getABI()).getPath();
+        return new File(defaultBaseDir, "lib/" + getABI()).getPath();
     }
 
     private void releaseLib(boolean forceRelease) throws Throwable {
-        String baseDir = getDefaultBaseDir();
         ZipArchive zipArchive = new ZipArchive(Paths.get(getResDir()));
         String abi = getABI();
         for (String entry : zipArchive.listEntries()) {
             if (entry.startsWith("lib/" + abi)) {
-                File soFile = new File(baseDir, entry);
+                File soFile = new File(defaultBaseDir, entry);
                 if (forceRelease || !soFile.exists()) {
                     soFile.getParentFile().mkdirs();
                     ByteBuffer content = zipArchive.getContent(entry);
@@ -130,14 +135,9 @@ public final class PrePareApk {
         return getDefaultBackupApkPath();
     }
 
-    private String getDefaultBaseDir() {
-        return new File(appContext.getFilesDir().getPath() + "/ori_backup/" + "data/app/" + appContext.getPackageName()).getPath();
-
-    }
-
     @NonNull
     private String getDefaultBackupApkPath() {
-        return new File(getDefaultBaseDir(), "base.apk").getPath();
+        return new File(defaultBaseDir, "base.apk").getPath();
     }
 
 }

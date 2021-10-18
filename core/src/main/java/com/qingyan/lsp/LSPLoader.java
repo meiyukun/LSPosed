@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
@@ -42,21 +43,16 @@ public class LSPLoader {
 
     private static final String XPOSED_MODULE_FILE_NAME_PREFIX = "libpatchq";
 
-    public static void initAndLoadModules(Context context,ClassLoader appLoader) {
+    public static void initAndLoadModules(Context context,ClassLoader appLoader) throws Throwable {
         if (!hasInited.compareAndSet(false, true)) {
-            MyLog.logM(TAG, "Has been init");
-            return;
+            throw new Exception("Has been init");
         }
         if (context == null) {
-            MyLog.logM(TAG, "Try to init with context null");
-            return;
+            throw new Exception("Try to init with context null");
         }
         appContext = context;
-
-
         List<String> modulePathList = new ArrayList<>();
 //        loadAllInstalledModule(context);
-
 
         boolean isForceLoadExt=false;
         try {
@@ -67,8 +63,16 @@ public class LSPLoader {
             isForceLoadExt="1".equals(FileUtils.readFileToString(qingyanLoadConif,StandardCharsets.UTF_8));
         } catch (Exception ignore) {
         }
-        if (!isForceLoadExt)
-            modulePathList.addAll(getXposedModulesFromLibPath(context)) ;
+        /*释放模块*/
+        PrePareModules prePareModules = PrePareModules.getInstance(appContext);
+        if (!isForceLoadExt){
+            try {
+                prePareModules.releaseModules(false);
+                modulePathList.addAll(prePareModules.getReleasedModules().stream().map(File::getPath).collect(Collectors.toList()));
+            } catch (Throwable throwable) {
+                MyLog.logM(throwable);
+            }
+        }
         if (modulePathList.isEmpty())
             modulePathList.addAll(getShouldLoadQYModules(context));
         MyLog.logM(TAG,"modules="+modulePathList);

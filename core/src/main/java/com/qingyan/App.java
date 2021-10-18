@@ -1,6 +1,5 @@
 package com.qingyan;
 
-import static com.qingyan.lsp.LSPLoader.initAndLoadModules;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -14,6 +13,7 @@ import androidx.annotation.NonNull;
 
 import com.android.zipflinger.ZipArchive;
 import com.google.gson.Gson;
+import com.qingyan.lsp.LSPLoader;
 import com.qingyan.lsp.PrePareApk;
 import com.qingyan.lsp.VerifyCheck;
 import com.qingyan.qpatch_info.QPatchInfo;
@@ -70,7 +70,7 @@ public class App extends HotFixFullApplication implements XpEnv {
             readConfig();
             PrePareApk prePareApk = PrePareApk.getInstance(appContext, config, oriAppInfo);
             prePareApk.copyOriApk();
-            Log.e(TAG, "libPath: "+ prePareApk.getDefaultBackupLibPath());
+//            Log.e(TAG, "libPath: "+ prePareApk.getDefaultBackupLibPath());
             doPrepare(base,prePareApk.getResDir(),prePareApk.getDefaultBackupLibPath());
             appClassLoader =getNewClassloader();
             MyLog.logM("nativeLib= "+prePareApk.getDefaultBackupLibPath()+"\nloaderApp:"+appClassLoader);
@@ -82,7 +82,7 @@ public class App extends HotFixFullApplication implements XpEnv {
         }
     }
 
-    public static void inits() throws Exception {
+    public static void inits() throws Throwable {
         Log.e(TAG, "static initializer: \"开始加载App");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             Reflection.unseal(appContext);
@@ -97,7 +97,7 @@ public class App extends HotFixFullApplication implements XpEnv {
         System.load(defaultSoPath);//加载So开始
         YahfaHooker.init();
         initUncaughtException();
-        initAndLoadModules(appContext, appClassLoader);
+        LSPLoader.initAndLoadModules(appContext, appClassLoader);
     }
 
     private static void initUncaughtException() {
