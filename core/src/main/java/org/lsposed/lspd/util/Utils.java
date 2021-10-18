@@ -54,6 +54,7 @@ public class Utils {
     }
 
     public static void logI(String msg) {
+        if (BuildConfig.DEBUG)
         Log.i(LOG_TAG, msg);
     }
 
