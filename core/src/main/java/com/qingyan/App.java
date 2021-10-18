@@ -14,8 +14,10 @@ import androidx.annotation.NonNull;
 
 import com.android.zipflinger.ZipArchive;
 import com.google.gson.Gson;
+import com.qingyan.lsp.VerifyCheck;
 import com.qingyan.qpatch_info.QPatchInfo;
 import com.qingyan.xp.env.QXpManager;
+import com.qingyan.xp.env.XpEnv;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -46,7 +48,7 @@ import qingyan.util.reflect.RefUtil;
  * Created by 青烟
  */
 @SuppressLint("UnsafeDynamicallyLoadedCode")
-public class App extends HotFixFullApplication {
+public class App extends HotFixFullApplication implements XpEnv {
     private static final String defaultLspSoName = "liblspd.so";
     private static final String XPOSED_SandHook_Library_Name = "libpatchs.so";
     private static final String TAG = "QBugHook";
@@ -55,21 +57,23 @@ public class App extends HotFixFullApplication {
     private static ClassLoader appClassLoader;
     private static QPatchInfo config;
     private static ApplicationInfo oriAppInfo;
+    private Object version;
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
-        UtilManager.init(base, true);
-        QXpManager.setAppContext(base);
+        UtilManager.init(base, BuildConfig.DEBUG);
+        QXpManager.setEvn(this);
         appContext = base;base.getResources();
         oriAppInfo = new ApplicationInfo(appContext.getApplicationInfo());
         try {
             readConfig();
             copyOriApk();
-            Log.e(TAG, "libPath: "+getDefaultBackupLibPath() );
+            Log.e(TAG, "libPath: "+getDefaultBackupLibPath());
             doPrepare(base,getResDir(),getDefaultBackupLibPath());
             appClassLoader =getNewClassloader();
             MyLog.logM("nativeLib= "+getDefaultBackupLibPath()+"\nloaderApp:"+appClassLoader);
             inits();
+            VerifyCheck.checkVersion(version);
             makeApplication();
         } catch (Throwable e) {
             MyLog.logM(e);
@@ -150,7 +154,6 @@ public class App extends HotFixFullApplication {
     private void readConfig(){
         try {
             String gstr=IOUtils.toString(appContext.getAssets().open(QPatchInfo.CONFIG_IN_ASSETS), StandardCharsets.UTF_8);
-            QXpManager.setConfig(gstr);
             config= new Gson().fromJson(gstr, QPatchInfo.class);
         } catch (Throwable e) {
             MyLog.logM(e);
@@ -200,5 +203,25 @@ public class App extends HotFixFullApplication {
         return oriAppInfo;
     }
 
-    public static QPatchInfo getConfig(){return config;}
+    public static QPatchInfo getPatchConfig(){return config;}
+
+    @Override
+    public String getConfig() {
+        return new Gson().toJson(config);
+    }
+
+    @Override
+    public Context getAppContext() {
+        return appContext;
+    }
+
+    @Override
+    public String getTureInstallPath() {
+        return oriAppInfo.publicSourceDir;
+    }
+
+    @Override
+    public void setVersion(Object version) {
+        this.version=version;
+    }
 }

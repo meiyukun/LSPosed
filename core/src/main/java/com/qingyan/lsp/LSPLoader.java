@@ -1,6 +1,5 @@
 package com.qingyan.lsp;
 
-import android.annotation.SuppressLint;
 import android.app.ActivityThread;
 import android.app.LoadedApk;
 import android.content.Context;
@@ -16,38 +15,20 @@ import com.qingyan.App;
 import qingyan.util.MyLog;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.lsposed.lspd.hooker.LoadedApkCstrHooker;
 import org.lsposed.lspd.service.ConfigFileManager;
 import org.lsposed.lspd.util.Utils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import dalvik.system.DelegateLastClassLoader;
-import dalvik.system.DexClassLoader;
-import de.robv.android.xposed.IXposedHookInitPackageResources;
-import de.robv.android.xposed.IXposedHookLoadPackage;
-import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.XposedInit;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
-import qingyan.util.reflect.RefUtil;
 import qingyan.util.reflect.ReflectInfo;
 
 public class LSPLoader {
@@ -144,7 +125,7 @@ public class LSPLoader {
     private static List<String> getShouldLoadQYModules(Context context){
         List<String> list=new ArrayList<>();
         try {
-            final ArrayList<String> packageNames= App.getConfig().defaultModuleList;
+            final ArrayList<String> packageNames= App.getPatchConfig().defaultModuleList;
             for (String packageName:packageNames){
                 String apkPath= context.getPackageManager().getApplicationInfo(packageName, 0).publicSourceDir;
                 list.add(apkPath);

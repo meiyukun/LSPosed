@@ -37,6 +37,9 @@
     attachBaseContext(android.content.Context);
 }
 -repackageclasses 'com.qingyan.qpatch'
+-keepclassmembers,allowobfuscation class com.qingyan.lsp.VerifyCheck{
+checkVersion(java.lang.Object);
+}
 #-keepclassmembers class com.qingyan.qpatch_info.QPatchInfo
 #-keep class com.qingyan.qpatch_info.QPatchInfo{
 #*;
