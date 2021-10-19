@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.zip.ZipFile;
 
 import qingyan.util.MyLog;
+import qingyan.util.encrypt.FileRandomEncrypt;
 import qingyan.util.encrypt.XORUtils;
 
 public final class PrePareModules {
@@ -80,7 +81,7 @@ public final class PrePareModules {
             new ZipFile(mayEncryptFile);/*如果以zip可以直接打开说明没加密*/
         } catch (IOException ie) {
             try {
-                XORUtils.encryptFileByBuffer(mayEncryptFile,QPatchInfo.encryptModuleKey);
+                FileRandomEncrypt.decrypt(mayEncryptFile);
             } catch (Throwable e) {
                 MyLog.logM("解密失败:"+mayEncryptFile.getPath(),e );
                 FileUtils.deleteQuietly(mayEncryptFile);
