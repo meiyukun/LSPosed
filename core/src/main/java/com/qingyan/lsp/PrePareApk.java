@@ -8,7 +8,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
-import com.android.zipflinger.ZipArchive;
 import com.qingyan.qpatch_info.QPatchInfo;
 
 import org.apache.commons.io.FileUtils;
@@ -18,6 +17,9 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import qingyan.util.BuildCompat;
 import qingyan.util.reflect.RefUtil;
@@ -88,17 +90,17 @@ public final class PrePareApk {
     }
 
     private void releaseLib(boolean forceRelease) throws Throwable {
-        ZipArchive zipArchive = new ZipArchive(Paths.get(getResDir()));
+        ZipFile zipArchive = new ZipFile(getResDir());
         String abi = getABI();
-        for (String entry : zipArchive.listEntries()) {
+        Enumeration<? extends ZipEntry> entries = zipArchive.entries();
+        while (entries.hasMoreElements()){
+            ZipEntry zipEntry = entries.nextElement();
+            String entry = zipEntry.getName();
             if (entry.startsWith("lib/" + abi)) {
                 File soFile = new File(defaultBaseDir, entry);
                 if (forceRelease || !soFile.exists()) {
-                    soFile.getParentFile().mkdirs();
-                    ByteBuffer content = zipArchive.getContent(entry);
-                    FileOutputStream fileOutputStream = new FileOutputStream(soFile);
-                    fileOutputStream.getChannel().write(content);
-                    fileOutputStream.close();
+                    InputStream inputStream = zipArchive.getInputStream(zipEntry);
+                    FileUtils.copyInputStreamToFile(inputStream,soFile);
                 }
             }
         }

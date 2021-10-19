@@ -65,7 +65,7 @@ public final class PrePareModules {
                         releasedModules.add(module);
                         continue;
                     }
-                    FileUtils.copyToFile(inputStream, module);
+                    FileUtils.copyInputStreamToFile(inputStream, module);
                     releasedModules.add(module);
                     handleEncrypt(module);
                 } catch (Throwable e) {

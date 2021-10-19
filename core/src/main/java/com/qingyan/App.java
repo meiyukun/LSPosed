@@ -8,10 +8,6 @@ import android.content.pm.ApplicationInfo;
 import android.os.Build;
 import android.util.Log;
 
-
-import androidx.annotation.NonNull;
-
-import com.android.zipflinger.ZipArchive;
 import com.google.gson.Gson;
 import com.qingyan.lsp.LSPLoader;
 import com.qingyan.lsp.PrePareApk;
@@ -20,30 +16,20 @@ import com.qingyan.qpatch_info.QPatchInfo;
 import com.qingyan.xp.env.QXpManager;
 import com.qingyan.xp.env.XpEnv;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.lsposed.lspd.BuildConfig;
 import org.lsposed.lspd.yahfa.hooker.YahfaHooker;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.reflection.Reflection;
 import qingyan.qhot.HotFixFullApplication;
-import qingyan.util.BuildCompat;
 import qingyan.util.CrashHandler;
 import qingyan.util.MyLog;
 import qingyan.util.UtilManager;
-import qingyan.util.reflect.RefUtil;
 
 /**
  * Created by 青烟

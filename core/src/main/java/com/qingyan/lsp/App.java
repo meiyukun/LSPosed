@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedInit;
-import qingyan.util.FileUtil;
 import qingyan.util.MyLog;
 import qingyan.util.UtilManager;
 
