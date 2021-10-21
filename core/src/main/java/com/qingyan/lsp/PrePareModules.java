@@ -1,11 +1,9 @@
 package com.qingyan.lsp;
 
+import android.app.ActivityThread;
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
-
-import com.qingyan.qpatch_info.QPatchInfo;
 
 import org.apache.commons.io.FileUtils;
 
@@ -13,16 +11,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipFile;
 
 import qingyan.util.MyLog;
 import qingyan.util.encrypt.FileRandomEncrypt;
-import qingyan.util.encrypt.XORUtils;
 
 public final class PrePareModules {
     private static final String XPOSED_MODULE_FILE_NAME_PREFIX = "libpatchq";
@@ -40,7 +34,7 @@ public final class PrePareModules {
 
     private PrePareModules(@NonNull Context appContext) {
         this.appContext = appContext;
-        this.moduleBaseDir = new File(appContext.getFilesDir().getPath() + "/qy_mods");
+        this.moduleBaseDir = new File(appContext.getFilesDir().getPath() + "/qy_mods/"+ ActivityThread.currentProcessName());
         if (moduleBaseDir.exists()&&moduleBaseDir.isFile()){
             moduleBaseDir.delete();
             moduleBaseDir.mkdirs();
