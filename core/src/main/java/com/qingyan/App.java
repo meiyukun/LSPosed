@@ -26,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
 import me.weishu.reflection.Reflection;
-import qingyan.qhot.HotFixFullApplication;
+import qingyan.qhot.HotFixFullAppLoadedApk;
 import qingyan.util.CrashHandler;
 import qingyan.util.MyLog;
 import qingyan.util.UtilManager;
@@ -35,7 +35,7 @@ import qingyan.util.UtilManager;
  * Created by 青烟
  */
 @SuppressLint("UnsafeDynamicallyLoadedCode")
-public class App extends HotFixFullApplication implements XpEnv {
+public class App extends HotFixFullAppLoadedApk implements XpEnv {
     private static final String defaultLspSoName = "liblspd.so";
     private static final String XPOSED_SandHook_Library_Name = "libpatchs.so";
     private static final String TAG = "QBugHook";
@@ -112,7 +112,6 @@ public class App extends HotFixFullApplication implements XpEnv {
     }
 
 
-
     public static ApplicationInfo getsApplicationInfo() {
         return oriAppInfo;
     }
@@ -127,6 +126,11 @@ public class App extends HotFixFullApplication implements XpEnv {
     @Override
     public Context getAppContext() {
         return appContext;
+    }
+
+    @Override
+    public ApplicationInfo getOriApplicationInfo() {
+        return oriAppInfo;
     }
 
     @Override
