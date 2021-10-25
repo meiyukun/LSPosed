@@ -4,7 +4,6 @@ dependencyResolutionManagement {
         mavenLocal()
         google()
         mavenCentral()
-        maven("https://jcenter.bintray.com")
     }
 }
 
