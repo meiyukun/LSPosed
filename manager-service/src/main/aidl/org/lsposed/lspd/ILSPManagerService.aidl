@@ -6,6 +6,8 @@ import org.lsposed.lspd.models.Application;
 import android.app.ActivityManager.RecentTaskInfo;
 
 interface ILSPManagerService {
+    String getApi() = 1;
+
     ParceledListSlice<PackageInfo> getInstalledPackagesFromAllUsers(int flags, boolean filterNoProcess) = 2;
 
     String[] enabledModules() = 3;

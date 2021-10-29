@@ -98,6 +98,8 @@ public class ConfigManager {
 
     private boolean sepolicyLoaded = true;
 
+    private String api = "(???)";
+
     static class ProcessScope {
         final String processName;
         final int uid;
@@ -925,8 +927,9 @@ public class ConfigManager {
         return sepolicyLoaded;
     }
 
-    public static List<String> getDenyListPackages() {
+    public List<String> getDenyListPackages() {
         List<String> result = new ArrayList<>();
+        if (!getApi().equals("Zygisk")) return result;
         try (final SQLiteDatabase magiskDb =
                      SQLiteDatabase.openDatabase(ConfigFileManager.magiskDbPath, new SQLiteDatabase.OpenParams.Builder().addOpenFlags(SQLiteDatabase.OPEN_READONLY).build())) {
             try (Cursor cursor = magiskDb.query(true, "denylist", new String[]{"package_name"}, null, null, null, null, null, null, null)) {
@@ -941,5 +944,13 @@ public class ConfigManager {
             Log.e(TAG, "get denylist", e);
         }
         return result;
+    }
+
+    public void setApi(String api) {
+        this.api = api;
+    }
+
+    public String getApi() {
+        return api;
     }
 }
