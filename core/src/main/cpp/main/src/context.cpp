@@ -144,7 +144,7 @@ namespace lspd {
     }
     void Context::InitLess(JNIEnv* env) {
         env->GetJavaVM(&vm_);
-        InitSymbolCache();
+        InitSymbolCache(nullptr);
         InstallInlineHooks();
         auto cls = env->FindClass(kClassLinkerClassNameSlash.c_str());
         class_linker_class_ = (jclass) env->NewGlobalRef(cls);

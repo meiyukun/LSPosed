@@ -182,6 +182,11 @@ dependencies {
             builtBy("generateApp${name}RFile")
         })
     }
+    implementation("org.qingyan.plugins:free_reflection:3.1.0")
+    implementation ("org.qingyan.plugins:qytoolj:1.0.0")
+    implementation ("org.qingyan.plugins:qhot:1.0")
+    implementation ("org.qingyan.plugins:qyxpenv:1.0")
+    implementation ("org.qingyan.plugins:qpatch_info:1.0")
 }
 
 val zipAll = task("zipAll", Task::class) {
@@ -352,11 +357,12 @@ androidComponents.onVariants { v ->
         dependsOn(flashTask)
         commandLine(adb, "shell", "reboot")
     }
+    println("${project(":core").buildDir}/outputs/apk/${flavorCapped}/${buildTypeLowered}")
     val pushCorePatchTask=task("pushCorePatch$variantCapped") {
 //        dependsOn("assemble$variantCapped")
         dependsOn(":core:assemble$variantCapped")
         doLast {
-            fileTree("${project(":core").buildDir}/outputs/apk/${variantLowered}").visit {
+            fileTree("${project(":core").buildDir}/outputs/apk/${flavorCapped}/${buildTypeLowered}").visit {
                 if (isDirectory) return@visit
                 if (file.name.endsWith(".apk")) {
                     println("上传：${file.path}")
