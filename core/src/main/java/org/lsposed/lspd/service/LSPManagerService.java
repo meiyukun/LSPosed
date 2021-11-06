@@ -555,16 +555,6 @@ public class LSPManagerService extends ILSPManagerService.Stub {
     }
 
     @Override
-    public boolean isResourceHook() {
-        return ConfigManager.getInstance().resourceHook();
-    }
-
-    @Override
-    public void setResourceHook(boolean enabled) {
-        ConfigManager.getInstance().setResourceHook(enabled);
-    }
-
-    @Override
     public boolean isAddShortcut() {
         return ConfigManager.getInstance().isAddShortcut();
     }
@@ -592,6 +582,7 @@ public class LSPManagerService extends ILSPManagerService.Stub {
 
     @Override
     public ParcelFileDescriptor getModulesLog() {
+        workerHandler.post(() -> ServiceManager.getLogcatService().checkLogFile());
         return ConfigManager.getInstance().getModulesLog();
     }
 
