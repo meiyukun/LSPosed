@@ -196,18 +196,14 @@ public class RepoFragment extends BaseFragment implements RepoLoader.Listener {
         public void onBindViewHolder(@NonNull RepoAdapter.ViewHolder holder, int position) {
             OnlineModule module = showList.get(position);
             holder.appName.setText(module.getDescription());
+
             SpannableStringBuilder sb = new SpannableStringBuilder(module.getName());
-            String summary = module.getSummary();
-            if (summary != null) {
-                sb.append("\n");
-                sb.append(summary);
-            }
             ModuleUtil.InstalledModule installedModule = ModuleUtil.getInstance().getModule(module.getName());
             if (installedModule != null) {
                 var ver = repoLoader.getModuleLatestVersion(installedModule.packageName);
-                if (ver != null && ver.first > installedModule.versionCode) {
+                if (ver != null && ver.upgradable(installedModule.versionCode, installedModule.versionName)) {
                     sb.append("\n");
-                    String recommended = getString(R.string.update_available, ver.second);
+                    String recommended = getString(R.string.update_available, ver.versionName);
                     sb.append(recommended);
                     final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(requireActivity().getTheme(), androidx.appcompat.R.attr.colorAccent));
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -220,7 +216,14 @@ public class RepoFragment extends BaseFragment implements RepoLoader.Listener {
                     sb.setSpan(foregroundColorSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }
             }
+            String summary = module.getSummary();
+            if (summary != null) {
+                sb.append("\n");
+                sb.append(summary);
+            }
+
             holder.appDescription.setText(sb);
+
             holder.itemView.setOnClickListener(v -> {
                 searchView.clearFocus();
                 searchView.onActionViewCollapsed();

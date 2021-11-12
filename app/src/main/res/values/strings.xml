@@ -31,7 +31,12 @@
     <string name="About">About</string>
     <string name="report_issue">Report issue</string>
     <string name="module_repo">Repository</string>
-    <string name="module_repo_summary">Module repository (Beta)</string>
+    <string name="module_repo_loading">Loading…</string>
+    <string name="module_repo_up_to_date">All modules up to date</string>
+    <plurals name="module_repo_upgradable">
+        <item quantity="one">%d module upgradable</item>
+        <item quantity="other">%d modules upgradable</item>
+    </plurals>
     <string name="about_view_source_code"><![CDATA[View source code at %1$s<br/>Join our %2$s channel]]></string>
     <string name="translators" comment="Dear translators, please add your home page here following the format. There can be more than one translator. So feel free to append yourself.">null</string>
 
@@ -161,7 +166,8 @@
     <string name="pure_black_dark_theme_summary">Use the pure black theme if dark theme is enabled</string>
     <string name="settings_group_theme">Theme</string>
     <string name="settings_backup_and_restore">Backup and restore</string>
-    <string name="settings_backup_and_restore_summery">Backup or restore module list and scope lists.</string>
+    <string name="settings_backup_summery">Backup module list and scope lists.</string>
+    <string name="settings_restore_summery">Restore module list and scope lists.</string>
     <string name="settings_backup">Backup</string>
     <string name="settings_backup_failed2">Failed to backup:\n%s</string>
     <string name="settings_restore">Restore</string>
@@ -200,8 +206,7 @@
     <string name="repo_load_failed">Failed to load module repo: %s</string>
 
     <!-- CrashReportActivity -->
-    <string name="outdated_core">LSPosed app is newer than framework. Please update LSPosed framework.</string>
-    <string name="outdated_manager">LSPosed framework is newer than app. Please update the app from /data/adb/lspd/manager.apk manually.</string>
+    <string name="version_mismatch">The version of the LSPosed framework (%1$d) does not match manager (%2$d). Please reinstall LSPosed.</string>
     <string name="manager_crashed">Manager crashed</string>
     <string name="copy_crash_info">Copy crash info</string>
     <string name="copy_toast_msg">Copied</string>
