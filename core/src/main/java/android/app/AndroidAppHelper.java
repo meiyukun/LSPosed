@@ -103,7 +103,7 @@ public final class AndroidAppHelper {
 	 * Returns the name of the current process. It's usually the same as the main package name.
 	 */
 	public static String currentProcessName() {
-		String processName = ActivityThread.currentPackageName();
+		String processName = ActivityThread.currentProcessName();
 		if (processName == null)
 			return "android";
 		return processName;
