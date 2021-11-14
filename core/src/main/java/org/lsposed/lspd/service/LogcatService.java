@@ -3,12 +3,23 @@ package org.lsposed.lspd.service;
 import android.annotation.SuppressLint;
 import android.os.ParcelFileDescriptor;
 import android.os.SystemProperties;
+import android.system.Os;
 import android.util.Log;
 
 import org.lsposed.lspd.BuildConfig;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class LogcatService implements Runnable {
     private static final String TAG = "LSPosedLogcat";
@@ -16,8 +27,8 @@ public class LogcatService implements Runnable {
             ParcelFileDescriptor.MODE_CREATE |
             ParcelFileDescriptor.MODE_TRUNCATE |
             ParcelFileDescriptor.MODE_APPEND;
-    private File modulesLog = null;
-    private File verboseLog = null;
+    private int modulesFd = -1;
+    private int verboseFd = -1;
     private Thread thread = null;
 
     @SuppressLint("UnsafeDynamicallyLoadedCode")
@@ -43,18 +54,47 @@ public class LogcatService implements Runnable {
     @SuppressWarnings("unused")
     private int refreshFd(boolean isVerboseLog) {
         try {
-            File log = isVerboseLog ? ConfigFileManager.getNewVerboseLogPath() : ConfigFileManager.getNewModulesLogPath();
-            Log.i(TAG, "New " + (isVerboseLog ? "verbose" : "modules") + " log file: " + log);
+            File log;
+            if (isVerboseLog) {
+                checkFd(verboseFd);
+                log = ConfigFileManager.getNewVerboseLogPath();
+            } else {
+                checkFd(modulesFd);
+                log = ConfigFileManager.getNewModulesLogPath();
+            }
+            Log.i(TAG, "New log file: " + log);
+            ConfigFileManager.chattr0(log.toPath().getParent());
             int fd = ParcelFileDescriptor.open(log, mode).detachFd();
-            var fdFile = new File("/proc/self/fd/" + fd);
-            if (isVerboseLog) verboseLog = fdFile;
-            else modulesLog = fdFile;
+            if (isVerboseLog) verboseFd = fd;
+            else modulesFd = fd;
             return fd;
         } catch (IOException e) {
-            if (isVerboseLog) verboseLog = null;
-            else modulesLog = null;
-            Log.w(TAG, "someone chattr +i ?", e);
+            if (isVerboseLog) verboseFd = -1;
+            else modulesFd = -1;
+            Log.w(TAG, "refreshFd", e);
             return -1;
+        }
+    }
+
+    private static void checkFd(int fd) {
+        if (fd == -1) return;
+        try {
+            var jfd = new FileDescriptor();
+            jfd.getClass().getDeclaredMethod("setInt$", int.class).invoke(jfd, fd);
+            var stat = Os.fstat(jfd);
+            if (stat.st_nlink == 0) {
+                var file = Files.readSymbolicLink(fdToPath(fd));
+                var parent = file.getParent();
+                if (!Files.isDirectory(parent, LinkOption.NOFOLLOW_LINKS)) {
+                    if (ConfigFileManager.chattr0(parent))
+                        Files.deleteIfExists(parent);
+                }
+                var name = file.getFileName().toString();
+                var originName = name.substring(0, name.lastIndexOf(' '));
+                Files.copy(file, parent.resolve(originName));
+            }
+        } catch (Throwable e) {
+            Log.w(TAG, "checkFd " + fd, e);
         }
     }
 
@@ -72,6 +112,42 @@ public class LogcatService implements Runnable {
             start();
         });
         thread.start();
+        getprop();
+    }
+
+    private void getprop() {
+        try {
+            var sb = new StringBuilder();
+            var t = new Thread(() -> {
+                try (var magiskPathReader = new BufferedReader(new InputStreamReader(new ProcessBuilder("magisk", "--path").start().getInputStream()))) {
+                    var magiskPath = magiskPathReader.readLine();
+                    var sh = magiskPath + "/.magisk/busybox/sh";
+                    var pid = Os.getpid();
+                    var tid = Os.gettid();
+                    try (var exec = new FileOutputStream("/proc/" + pid + "/task/" + tid + "/attr/exec")) {
+                        var untrusted = "u:r:untrusted_app:s0";
+                        exec.write(untrusted.getBytes());
+                    }
+                    try (var rd = new BufferedReader(new InputStreamReader(new ProcessBuilder(sh, "-c", "getprop").start().getInputStream()))) {
+                        String line;
+                        while ((line = rd.readLine()) != null) {
+                            sb.append(line);
+                            sb.append(System.lineSeparator());
+                        }
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "GetProp: ", e);
+                }
+            });
+            t.start();
+            t.join();
+            var propsLogPath = ConfigFileManager.getpropsLogPath();
+            try (var writer = new BufferedWriter(new FileWriter(propsLogPath))) {
+                writer.append(sb);
+            }
+        } catch (IOException | InterruptedException | NullPointerException e) {
+            Log.e(TAG, "GetProp: ", e);
+        }
     }
 
     public void startVerbose() {
@@ -90,11 +166,25 @@ public class LogcatService implements Runnable {
         }
     }
 
+    static private Path fdToPath(int fd) {
+        if (fd == -1) return null;
+        else return Paths.get("/proc/self/fd", String.valueOf(fd));
+    }
+
     public File getVerboseLog() {
-        return verboseLog;
+        var path = fdToPath(verboseFd);
+        return path == null ? null : path.toFile();
     }
 
     public File getModulesLog() {
-        return modulesLog;
+        var path = fdToPath(modulesFd);
+        return path == null ? null : path.toFile();
+    }
+
+    public void checkLogFile() {
+        if (modulesFd == -1)
+            refresh(false);
+        if (verboseFd == -1)
+            refresh(true);
     }
 }

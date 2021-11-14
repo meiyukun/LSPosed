@@ -9,6 +9,7 @@ import android.os.ParcelFileDescriptor;
 import android.os.SELinux;
 import android.os.SharedMemory;
 import android.system.ErrnoException;
+import android.system.Os;
 import android.system.OsConstants;
 import android.util.Log;
 
@@ -28,6 +29,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,9 +46,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipFile;
 
+import hidden.HiddenApiBridge;
+
 public class ConfigFileManager {
     static final Path basePath = Paths.get("/data/adb/lspd");
-    private static final Path managerApkPath = basePath.resolve("manager.apk");
+    static final Path managerApkPath = basePath.resolve("manager.apk");
     private static final Path lockPath = basePath.resolve("lock");
     private static final Path configDirPath = basePath.resolve("config");
     static final File dbPath = configDirPath.resolve("modules_config.db").toFile();
@@ -65,10 +69,17 @@ public class ConfigFileManager {
             Files.createDirectories(basePath);
             SELinux.setFileContext(basePath.toString(), "u:object_r:system_file:s0");
             Files.createDirectories(configDirPath);
-            Files.createDirectories(logDirPath);
+            createLogDirPath();
         } catch (IOException e) {
 //            Log.e(TAG, Log.getStackTraceString(e));
         }
+    }
+
+    private static void createLogDirPath() throws IOException {
+        if (!Files.isDirectory(logDirPath, LinkOption.NOFOLLOW_LINKS)) {
+            Files.deleteIfExists(logDirPath);
+        }
+        Files.createDirectories(logDirPath);
     }
 
     public static Resources getResources() {
@@ -136,11 +147,25 @@ public class ConfigFileManager {
         });
     }
 
+    public static boolean chattr0(Path path) {
+        try {
+            var dir = Os.open(path.toAbsolutePath().toString(), OsConstants.O_RDONLY, 0);
+            HiddenApiBridge.Os_ioctlInt(dir, HiddenApiBridge.VMRuntime_is64Bit() ? 0x40086602 : 0x40046602, 0);
+            Os.close(dir);
+            return true;
+        } catch (Throwable e) {
+            Log.d(TAG, "chattr 0", e);
+            return false;
+        }
+    }
+
     static void moveLogDir() {
         try {
             if (Files.exists(logDirPath)) {
-                deleteFolderIfExists(oldLogDirPath);
-                Files.move(logDirPath, oldLogDirPath);
+                if (chattr0(logDirPath)) {
+                    deleteFolderIfExists(oldLogDirPath);
+                    Files.move(logDirPath, oldLogDirPath);
+                }
             }
             Files.createDirectories(logDirPath);
         } catch (IOException e) {
@@ -149,17 +174,22 @@ public class ConfigFileManager {
     }
 
     private static String getNewLogFileName(String prefix) {
-        return prefix + "_" + formatter.format(Instant.now()) + ".txt";
+        return prefix + "_" + formatter.format(Instant.now()) + ".log";
     }
 
     static File getNewVerboseLogPath() throws IOException {
-        Files.createDirectories(logDirPath);
+        createLogDirPath();
         return logDirPath.resolve(getNewLogFileName("verbose")).toFile();
     }
 
     static File getNewModulesLogPath() throws IOException {
-        Files.createDirectories(logDirPath);
+        createLogDirPath();
         return logDirPath.resolve(getNewLogFileName("modules")).toFile();
+    }
+
+    static File getpropsLogPath() throws IOException {
+        createLogDirPath();
+        return logDirPath.resolve("props.log").toFile();
     }
 
     static Map<String, ParcelFileDescriptor> getLogs() {

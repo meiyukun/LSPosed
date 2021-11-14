@@ -30,7 +30,11 @@
     <string name="About">Tentang</string>
     <string name="report_issue">Laporkan masalah</string>
     <string name="module_repo">Gudang</string>
-    <string name="module_repo_summary">Gudang Modul (Beta)</string>
+    <string name="module_repo_loading">Memuat…</string>
+    <string name="module_repo_up_to_date">Semua modul sudah terkini</string>
+    <plurals name="module_repo_upgradable">
+        <item quantity="other">%d Modul dapat diperbarui</item>
+    </plurals>
     <string name="about_view_source_code"><![CDATA[Lihat kode sumber di %1$s<br/>Bergabunglah dengan kami %2$s saluran]]></string>
     <string name="translators" comment="Dear translators, please add your home page here following the format. There can be more than one translator. So feel free to append yourself.">AMMLR</string>
     <string name="install">Pasang</string>
@@ -54,11 +58,14 @@
     <string name="info_system_version">Versi sistem</string>
     <string name="info_device">Perangkat</string>
     <string name="info_system_abi">Sistem ABI</string>
+    <string name="info_api">Tanamkan tatap muka</string>
     <string name="parasitic_recommend">Manajer Parasit Direkomendasikan</string>
     <string name="parasitic_recommend_summary">LSPosed sekarang mendukung parasitisasi sistem untuk menghindari deteksi. Anda dapat menghapus instalan manajer dengan aman setelah berhasil membuat pintasan manajer parasit. Bagaimanapun, Anda dapat menginstal kembali manajer dari /data/adb/lspd/manager.apk.</string>
     <string name="create_shortcut">Buat pintasan</string>
     <string name="never_show">Jangan pernah ditampilkan</string>
     <string name="failed_to_create_shortcut">Gagal membuat pintasan: %1$s</string>
+    <string name="update_lsposed">Perbaharui LSPosed</string>
+    <string name="update_lsposed_msg">Konfirmasi untuk pembaharuan LSPosed? Perangkat ini akan mulai ulang setelah pembaharuan selesai</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Simpan</string>
     <string name="nav_item_logs_lsp">Log LSPosed</string>
@@ -139,14 +146,13 @@
     <string name="list_empty">\"\\\\_(ツ)_\/¯\nTidak ada apa-apa di sini</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Kerangka</string>
-    <string name="settings_enable_resources">Aktifkan kait sumber daya</string>
-    <string name="settings_enable_resources_summary"><b>PERINGATAN:</b> Kait sumber daya bersifat eksperimental</string>
     <string name="pref_title_disable_verbose_log">Nonaktifkan log lengkap</string>
     <string name="pure_black_dark_theme">Tema hitam gelap</string>
     <string name="pure_black_dark_theme_summary">Gunakan tema hitam murni jika tema gelap diaktifkan</string>
     <string name="settings_group_theme">Tema</string>
     <string name="settings_backup_and_restore">Cadangkan dan pulihkan</string>
-    <string name="settings_backup_and_restore_summery">Cadangkan atau pulihkan daftar modul dan daftar cakupan.</string>
+    <string name="settings_backup_summery">Cadangkan atau pulihkan daftar modul dan daftar cakupan.</string>
+    <string name="settings_restore_summery">Cadangkan atau pulihkan daftar modul dan daftar cakupan.</string>
     <string name="settings_backup">Cadangkan</string>
     <string name="settings_backup_failed2">Gagal mencadangkan:\n%s</string>
     <string name="settings_restore">Pulihkan</string>
@@ -163,6 +169,10 @@
     <string name="settings_translation_contributors">Kontributor terjemahan</string>
     <string name="settings_translation">Berpartisipasi dalam terjemahan</string>
     <string name="settings_translation_summary">Bantu kami menerjemahkan %s kedalam bahasamu</string>
+    <string name="pref_title_enable_auto_add_shortcut">Buat jalur pintas secara otomatis</string>
+    <string name="settings_update_channel">Perbarui saluran</string>
+    <string name="update_channel_stable">Stabil</string>
+    <string name="update_channel_bate">Beta</string>
     <!-- Module Repo -->
     <string name="module_readme">Baca aku</string>
     <string name="module_releases">Rilis</string>
@@ -177,11 +187,28 @@
     <string name="module_release_no_more">Tidak ada rilis</string>
     <string name="repo_load_failed">Gagal memuat repo modul: %s</string>
     <!-- CrashReportActivity -->
-    <string name="outdated_core">Aplikasi LSPosed lebih baru dari kerangka kerja. Harap perbarui kerangka kerja LSPosed.</string>
-    <string name="outdated_manager">Kerangka kerja LSPosed lebih baru dari aplikasi. Harap perbarui aplikasi dari /data/adb/lspd/manager.apk secara manual.</string>
     <string name="manager_crashed">Manajer rusak</string>
     <string name="manager_crashed_info">laporkan ini kepada </string>
     <string name="send_crash_info">Kirim info kerusakan</string>
     <string name="crash_info_copied">Info kerusakan disalin ke papan klip</string>
     <!-- Colors -->
+    <string name="color_pixel_blue">Biru Piksel</string>
+    <string name="color_sakura">Sakura</string>
+    <string name="color_red">Merah</string>
+    <string name="color_pink">Merah muda</string>
+    <string name="color_purple">Ungu</string>
+    <string name="color_deep_purple">Ungu gelap</string>
+    <string name="color_indigo">Biru gelap</string>
+    <string name="color_blue">Biru</string>
+    <string name="color_light_blue">Biru terang</string>
+    <string name="color_teal">Hijau toska</string>
+    <string name="color_green">Hijau</string>
+    <string name="color_light_green">Hijau terang</string>
+    <string name="color_lime">Hijau limau</string>
+    <string name="color_yellow">Kuning</string>
+    <string name="color_orange">Oranye</string>
+    <string name="color_deep_orange">Oranye gelap</string>
+    <string name="color_brown">Coklat</string>
+    <string name="color_grey">Abu-abu</string>
+    <string name="color_blue_grey">Abu-abu kebiruan</string>
 </resources>

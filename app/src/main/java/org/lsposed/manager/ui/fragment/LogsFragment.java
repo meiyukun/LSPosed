@@ -24,6 +24,7 @@ import static org.lsposed.manager.App.TAG;
 import static java.lang.Math.max;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +32,7 @@ import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -80,6 +82,7 @@ public class LogsFragment extends BaseFragment {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private FragmentLogsBinding binding;
     private LinearLayoutManager layoutManager;
+    private final SharedPreferences preferences = App.getPreferences();
     private final ActivityResultLauncher<String> saveLogsLauncher = registerForActivityResult(
             new ActivityResultContracts.CreateDocument(),
             uri -> {
@@ -163,8 +166,19 @@ public class LogsFragment extends BaseFragment {
         } else if (itemId == R.id.menu_clear) {
             clear();
             return true;
+        } else if (itemId == R.id.item_word_wrap) {
+            item.setChecked(!item.isChecked());
+            preferences.edit().putBoolean("enable_word_wrap", item.isChecked()).apply();
+            reloadLogs();
+            return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        menu.findItem(R.id.item_word_wrap).setChecked(preferences.getBoolean("enable_word_wrap", false));
     }
 
     @Override
@@ -208,17 +222,9 @@ public class LogsFragment extends BaseFragment {
             }
         });
 
-        try (var is = Runtime.getRuntime().exec("getprop").getInputStream()) {
-            os.putNextEntry(new ZipEntry("system_props.txt"));
-            FileUtils.copy(is, os);
-            os.closeEntry();
-        } catch (IOException e) {
-            Log.w(TAG, "system_props.txt", e);
-        }
-
         var now = LocalDateTime.now();
-        var name = "app_" + now.toString() + ".txt";
-        try (var is = Runtime.getRuntime().exec("logcat -d").getInputStream()) {
+        var name = "app_" + now.toString() + ".log";
+        try (var is = new ProcessBuilder("logcat", "-d").start().getInputStream()) {
             os.putNextEntry(new ZipEntry(name));
             FileUtils.copy(is, os);
             os.closeEntry();
@@ -299,7 +305,7 @@ public class LogsFragment extends BaseFragment {
             TextView view = holder.textView;
             view.setText(logs.get(position));
             view.measure(0, 0);
-            int desiredWidth = view.getMeasuredWidth();
+            int desiredWidth = (preferences.getBoolean("enable_word_wrap", false)) ? binding.getRoot().getWidth() : view.getMeasuredWidth();
             ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
             layoutParams.width = desiredWidth;
             if (binding.recyclerView.getWidth() < desiredWidth) {
