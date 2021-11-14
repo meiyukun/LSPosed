@@ -201,7 +201,6 @@
     <string name="copy_crash_info">复制错误信息</string>
     <string name="copy_toast_msg">已复制</string>
     <string name="relaunch_app">重启App</string>
-    <string name="manager_crashed_info">报告 </string>
     <string name="send_crash_info">发送崩溃信息</string>
     <string name="crash_info_copied">已将崩溃信息复制到剪贴板</string>
     <!-- Colors -->
