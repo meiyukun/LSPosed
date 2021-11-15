@@ -30,7 +30,7 @@
 #include "jni/native_api.h"
 #include "service.h"
 #include "symbol_cache.h"
-
+#include "hookapi/MyNativeUtils.h"
 #include <linux/fs.h>
 #include <fcntl.h>
 
@@ -146,6 +146,7 @@ namespace lspd {
         RegisterYahfa(env);
         RegisterPendingHooks(env);
         RegisterNativeAPI(env);
+        QyTool::RegisterQyTool(env);
     }
 
     ScopedLocalRef<jclass>
