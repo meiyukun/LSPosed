@@ -257,7 +257,7 @@ public final class XposedBridge {
     public static Set<XC_MethodHook.Unhook> hookAllMethods(Class<?> hookClass, String methodName, XC_MethodHook callback) {
         Set<XC_MethodHook.Unhook> unhooks = new HashSet<>();
         for (Member method : hookClass.getDeclaredMethods())
-            if (method.getName().equals(methodName))
+            if (method.getName().equals(methodName)&&!Modifier.isAbstract(method.getModifiers()))
                 unhooks.add(hookMethod(method, callback));
         return unhooks;
     }
