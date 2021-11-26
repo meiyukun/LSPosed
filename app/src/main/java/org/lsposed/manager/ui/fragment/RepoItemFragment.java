@@ -44,7 +44,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
@@ -63,8 +62,11 @@ import org.lsposed.manager.repo.model.Collaborator;
 import org.lsposed.manager.repo.model.OnlineModule;
 import org.lsposed.manager.repo.model.Release;
 import org.lsposed.manager.repo.model.ReleaseAsset;
+import org.lsposed.manager.ui.dialog.BlurBehindDialogBuilder;
+import org.lsposed.manager.ui.widget.EmptyStateRecyclerView;
 import org.lsposed.manager.ui.widget.LinkifyTextView;
 import org.lsposed.manager.util.NavUtil;
+import org.lsposed.manager.util.SimpleStatefulAdaptor;
 import org.lsposed.manager.util.chrome.CustomTabsURLSpan;
 
 import java.io.ByteArrayInputStream;
@@ -209,7 +211,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
     public void moduleReleasesLoaded(OnlineModule module) {
         this.module = module;
         if (releaseAdapter != null) {
-            runOnUiThread(() -> releaseAdapter.loadItems());
+            runAsync(releaseAdapter::loadItems);
             if (isResumed() && module.getReleases().size() == 1) {
                 Snackbar.make(binding.snackbar, R.string.module_release_no_more, Snackbar.LENGTH_SHORT).show();
             }
@@ -219,7 +221,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
     @Override
     public void onThrowable(Throwable t) {
         if (releaseAdapter != null) {
-            runOnUiThread(() -> releaseAdapter.loadItems());
+            runAsync(releaseAdapter::loadItems);
             if (isResumed()) {
                 Snackbar.make(binding.snackbar, getString(R.string.repo_load_failed, t.getLocalizedMessage()), Snackbar.LENGTH_SHORT).show();
             }
@@ -234,7 +236,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
         binding = null;
     }
 
-    private class InformationAdapter extends RecyclerView.Adapter<InformationAdapter.ViewHolder> {
+    private class InformationAdapter extends SimpleStatefulAdaptor<InformationAdapter.ViewHolder> {
         private final OnlineModule module;
 
         private int rowCount = 0;
@@ -320,12 +322,12 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
         }
     }
 
-    private class ReleaseAdapter extends RecyclerView.Adapter<ReleaseAdapter.ViewHolder> {
-        private List<Release> items;
+    private class ReleaseAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<ReleaseAdapter.ViewHolder> {
+        private List<Release> items = new ArrayList<>();
         private final Resources resources = App.getInstance().getResources();
 
         public ReleaseAdapter() {
-            loadItems();
+            runAsync(this::loadItems);
         }
 
         public void loadItems() {
@@ -344,7 +346,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
                     return !name.startsWith("snapshot") && !name.startsWith("nightly");
                 }).collect(Collectors.toList());
             } else this.items = releases;
-            notifyDataSetChanged();
+            runOnUiThread(this::notifyDataSetChanged);
         }
 
         @NonNull
@@ -359,7 +361,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
 
         @Override
         public void onBindViewHolder(@NonNull ReleaseAdapter.ViewHolder holder, int position) {
-            if (position == items.size()) {
+            if (holder.getItemViewType() == 1) {
                 holder.progress.setVisibility(View.GONE);
                 holder.title.setVisibility(View.VISIBLE);
                 holder.itemView.setOnClickListener(v -> {
@@ -379,7 +381,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
                     holder.viewAssets.setOnClickListener(v -> {
                         ArrayList<String> names = new ArrayList<>();
                         assets.forEach(releaseAsset -> names.add(releaseAsset.getName()));
-                        new MaterialAlertDialogBuilder(requireActivity())
+                        new BlurBehindDialogBuilder(requireActivity())
                                 .setItems(names.toArray(new String[0]), (dialog, which) -> NavUtil.startURL(requireActivity(), assets.get(which).getDownloadUrl()))
                                 .show();
                     });
@@ -397,6 +399,11 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
         @Override
         public int getItemViewType(int position) {
             return !module.releasesLoaded && position == getItemCount() - 1 ? 1 : 0;
+        }
+
+        @Override
+        public boolean isLoaded() {
+            return module.releasesLoaded;
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
@@ -430,7 +437,7 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
         }
     }
 
-    private class PagerAdapter extends RecyclerView.Adapter<PagerAdapter.ViewHolder> {
+    private class PagerAdapter extends SimpleStatefulAdaptor<PagerAdapter.ViewHolder> {
 
         @NonNull
         @Override
@@ -451,11 +458,13 @@ public class RepoItemFragment extends BaseFragment implements RepoLoader.Listene
                     break;
                 case 1:
                 case 2:
+                    RecyclerView.Adapter adapter;
                     if (position == 1) {
-                        holder.recyclerView.setAdapter(releaseAdapter = new ReleaseAdapter());
+                        adapter = releaseAdapter = new ReleaseAdapter();
                     } else {
-                        holder.recyclerView.setAdapter(new InformationAdapter(module));
+                        adapter = new InformationAdapter(module);
                     }
+                    holder.recyclerView.setAdapter(adapter);
                     holder.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
                     RecyclerViewKt.fixEdgeEffect(holder.recyclerView, false, true);
                     break;

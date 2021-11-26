@@ -98,7 +98,7 @@ public class RepoLoader {
                 .build()).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                Log.e(App.TAG, call.request().url() + e.getMessage());
+                Log.e(App.TAG, call.request().url().toString(), e);
                 for (Listener listener : listeners) {
                     listener.onThrowable(e);
                 }
@@ -143,11 +143,11 @@ public class RepoLoader {
 
                             onlineModules = modules;
                             Files.write(repoFile, bodyString.getBytes(StandardCharsets.UTF_8));
-                            for (Listener listener : listeners) {
-                                listener.repoLoaded();
-                            }
                             synchronized (this) {
                                 repoLoaded = true;
+                            }
+                            for (Listener listener : listeners) {
+                                listener.repoLoaded();
                             }
                         } catch (Throwable t) {
                             Log.e(App.TAG, Log.getStackTraceString(t));

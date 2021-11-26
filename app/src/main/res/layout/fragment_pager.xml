@@ -32,21 +32,31 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="false"
+        app:fitsSystemWindowsInsets="top">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar_layout"
+            style="?attr/collapsingToolbarLayoutMediumStyle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="?attr/actionBarSize"
-            android:elevation="0dp"
-            app:layout_scrollFlags="scroll|enterAlways"
-            app:layout_scrollEffect="none" />
+            android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:titleCollapseMode="scale">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:elevation="0dp"
+                app:layout_collapseMode="pin" />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="@dimen/tab_layout_height"
+            android:layout_gravity="bottom"
             android:background="@android:color/transparent"
             app:layout_scrollFlags="scroll|enterAlways"
             app:tabGravity="center"
@@ -54,11 +64,25 @@
             app:tabMode="scrollable" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/view_pager"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:hideAnimationBehavior="outward" />
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+    </FrameLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"
@@ -68,6 +92,9 @@
         android:layout_margin="16dp"
         android:contentDescription="@string/add_module_to_user"
         android:src="@drawable/ic_baseline_add_24"
-        android:visibility="invisible"
+        android:visibility="gone"
+        app:backgroundTint="?attr/colorPrimary"
+        app:tint="@color/primary_text_material_inverse"
+        app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior"
         app:layout_fitsSystemWindowsInsets="bottom" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

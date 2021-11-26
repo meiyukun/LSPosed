@@ -31,11 +31,16 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:fitsSystemWindows="true">
+        android:fitsSystemWindows="false"
+        app:fitsSystemWindowsInsets="top">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/collapsing_toolbar_layout"
+            style="?attr/collapsingToolbarLayoutMediumStyle"
             android:layout_width="match_parent"
             android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
+            app:forceApplySystemWindowInsetTop="true"
+            app:titleCollapseMode="scale"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
 
             <com.google.android.material.appbar.MaterialToolbar
@@ -61,7 +66,7 @@
             android:visibility="gone"
             app:hideAnimationBehavior="outward" />
 
-        <org.lsposed.manager.ui.widget.EmptyStateRecyclerView
+        <org.lsposed.manager.ui.widget.StatefulRecyclerView
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -69,9 +74,9 @@
             android:fadeScrollbars="true"
             android:scrollbarStyle="insideOverlay"
             android:scrollbars="vertical"
-            app:borderTopVisibility="whenTop"
-            app:borderTopDrawable="@null"
             app:borderBottomVisibility="never"
+            app:borderTopDrawable="@null"
+            app:borderTopVisibility="whenTop"
             app:fitsSystemWindowsInsets="bottom" />
     </FrameLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

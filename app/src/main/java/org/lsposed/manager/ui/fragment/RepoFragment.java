@@ -57,6 +57,7 @@ import org.lsposed.manager.databinding.ItemOnlinemoduleBinding;
 import org.lsposed.manager.repo.RepoLoader;
 import org.lsposed.manager.repo.model.OnlineModule;
 import org.lsposed.manager.util.ModuleUtil;
+import org.lsposed.manager.util.SimpleStatefulAdaptor;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -111,6 +112,17 @@ public class RepoFragment extends BaseFragment implements RepoLoader.Listener {
         RecyclerViewKt.fixEdgeEffect(binding.recyclerView, false, true);
         binding.progress.setVisibilityAfterHide(View.GONE);
         repoLoader.addListener(this);
+
+        /*
+          CollapsingToolbarLayout consumes window insets, causing child views not
+          receiving window insets.
+          See https://github.com/material-components/material-components-android/issues/1310
+
+          Insets can be handled by RikkaX Insets, so we can manually set
+          OnApplyWindowInsetsListener to null.
+         */
+
+        binding.collapsingToolbarLayout.setOnApplyWindowInsetsListener(null);
         return binding.getRoot();
     }
 
@@ -178,7 +190,7 @@ public class RepoFragment extends BaseFragment implements RepoLoader.Listener {
         return super.onOptionsItemSelected(item);
     }
 
-    private class RepoAdapter extends RecyclerView.Adapter<RepoAdapter.ViewHolder> implements Filterable {
+    private class RepoAdapter extends SimpleStatefulAdaptor<RepoAdapter.ViewHolder> implements Filterable {
         private List<OnlineModule> fullList, showList;
         private final LabelComparator labelComparator = new LabelComparator();
 
