@@ -27,14 +27,10 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatDialogFragment;
 import androidx.fragment.app.FragmentManager;
-
-import com.google.android.material.snackbar.Snackbar;
 
 import org.lsposed.manager.App;
 import org.lsposed.manager.R;
@@ -46,20 +42,20 @@ import java.lang.ref.WeakReference;
 
 @SuppressWarnings("deprecation")
 public class CompileDialogFragment extends AppCompatDialogFragment {
-    private ApplicationInfo appInfo;
-    private View snackBar;
-
-    public static void speed(FragmentManager fragmentManager, ApplicationInfo info, View snackBar) {
+    public static void speed(FragmentManager fragmentManager, ApplicationInfo info) {
         CompileDialogFragment fragment = new CompileDialogFragment();
         fragment.setCancelable(false);
-        fragment.appInfo = info;
-        fragment.snackBar = snackBar;
+        var bundle = new Bundle();
+        bundle.putParcelable("appInfo", info);
+        fragment.setArguments(bundle);
         fragment.show(fragmentManager, "compile_dialog");
     }
 
     @Override
     @NonNull
     public Dialog onCreateDialog(Bundle savedInstanceState) {
+        var arguments = getArguments();
+        ApplicationInfo appInfo = arguments != null ? arguments.getParcelable("appInfo") : null;
         if (appInfo == null) {
             throw new IllegalStateException("appInfo should not be null.");
         }
@@ -67,17 +63,12 @@ public class CompileDialogFragment extends AppCompatDialogFragment {
         FragmentCompileDialogBinding binding = FragmentCompileDialogBinding.inflate(LayoutInflater.from(requireActivity()), null, false);
         final PackageManager pm = requireContext().getPackageManager();
         var builder = new BlurBehindDialogBuilder(requireActivity())
-                .setIcon(appInfo.loadIcon(pm))
                 .setTitle(appInfo.loadLabel(pm))
                 .setView(binding.getRoot());
 
-        return builder.create();
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
+        var alertDialog = builder.create();
         new CompileTask(this).executeOnExecutor(App.getExecutorService(), appInfo.packageName);
+        return alertDialog;
     }
 
     private static class CompileTask extends AsyncTask<String, Void, Throwable> {
@@ -118,12 +109,10 @@ public class CompileDialogFragment extends AppCompatDialogFragment {
             if (fragment != null) {
                 fragment.dismissAllowingStateLoss();
                 var parent = fragment.getParentFragment();
-                if (fragment.snackBar != null && parent != null && parent.isResumed()) {
-                    Snackbar.make(fragment.snackBar, text, Snackbar.LENGTH_LONG).show();
-                    return;
+                if (parent instanceof BaseFragment) {
+                    ((BaseFragment) parent).showHint(text, true);
                 }
             }
-            Toast.makeText(context, text, Toast.LENGTH_LONG).show();
         }
     }
 }

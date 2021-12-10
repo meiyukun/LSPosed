@@ -20,7 +20,6 @@
 package org.lsposed.manager.ui.fragment;
 
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
-import static androidx.recyclerview.widget.RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -37,6 +36,7 @@ import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -46,7 +46,6 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -65,7 +64,6 @@ import com.bumptech.glide.request.transition.Transition;
 import com.google.android.material.behavior.HideBottomViewOnScrollBehavior;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -74,10 +72,9 @@ import org.lsposed.manager.App;
 import org.lsposed.manager.ConfigManager;
 import org.lsposed.manager.R;
 import org.lsposed.manager.adapters.AppHelper;
-import org.lsposed.manager.databinding.DialogRecyclerviewBinding;
 import org.lsposed.manager.databinding.FragmentPagerBinding;
 import org.lsposed.manager.databinding.ItemModuleBinding;
-import org.lsposed.manager.databinding.ItemRepoRecyclerviewBinding;
+import org.lsposed.manager.databinding.SwiperefreshRecyclerviewBinding;
 import org.lsposed.manager.repo.RepoLoader;
 import org.lsposed.manager.ui.dialog.BlurBehindDialogBuilder;
 import org.lsposed.manager.ui.widget.EmptyStateRecyclerView;
@@ -94,23 +91,16 @@ import java.util.stream.IntStream;
 import rikka.core.util.ResourceUtils;
 import rikka.recyclerview.RecyclerViewKt;
 
-public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleListener {
+public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleListener, RepoLoader.RepoListener {
     private static final PackageManager pm = App.getInstance().getPackageManager();
     private static final ModuleUtil moduleUtil = ModuleUtil.getInstance();
     private static final RepoLoader repoLoader = RepoLoader.getInstance();
-    private static final List<UserInfo> users = ConfigManager.getUsers();
     protected FragmentPagerBinding binding;
     protected SearchView searchView;
     private SearchView.OnQueryTextListener searchListener;
 
-    private final ArrayList<ModuleAdapter> adapters = new ArrayList<>();
-
-    private final RecyclerView.AdapterDataObserver observer = new RecyclerView.AdapterDataObserver() {
-        @Override
-        public void onChanged() {
-            updateProgress();
-        }
-    };
+    SparseArray<ModuleAdapter> adapters = new SparseArray<>();
+    PagerAdapter pagerAdapter = null;
 
     private ModuleUtil.InstalledModule selectedModule;
 
@@ -120,25 +110,22 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
         searchListener = new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                adapters.forEach(adapter -> adapter.getFilter().filter(query));
+                forEachAdaptor(adapter -> adapter.getFilter().filter(query));
                 return false;
             }
 
             @Override
-            public boolean onQueryTextChange(String newText) {
-                adapters.forEach(adapter -> adapter.getFilter().filter(newText));
+            public boolean onQueryTextChange(String query) {
+                forEachAdaptor(adapter -> adapter.getFilter().filter(query));
                 return false;
             }
         };
+    }
 
-        if (users != null) {
-            for (var user : users) {
-                var adapter = new ModuleAdapter(user);
-                adapter.setHasStableIds(true);
-                adapter.setStateRestorationPolicy(PREVENT_WHEN_EMPTY);
-                adapters.add(adapter);
-                adapter.registerAdapterDataObserver(observer);
-            }
+    private void forEachAdaptor(Consumer<? super ModuleAdapter> action) {
+        var snapshot = adapters;
+        for (var i = 0; i < snapshot.size(); ++i) {
+            action.accept(snapshot.valueAt(i));
         }
     }
 
@@ -154,80 +141,48 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
         }
     }
 
-    private void updateProgress() {
-        if (binding != null) {
-            var position = binding.viewPager.getCurrentItem();
-            binding.progress.setVisibility(adapters.get(position).isLoaded ? View.GONE : View.VISIBLE);
-        }
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        moduleUtil.addListener(this);
-    }
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentPagerBinding.inflate(inflater, container, false);
-        setupToolbar(binding.toolbar, R.string.Modules, R.menu.menu_modules);
-        binding.viewPager.setAdapter(new PagerAdapter(this));
+        binding.appBar.setLiftable(true);
+        setupToolbar(binding.toolbar, binding.clickView, R.string.Modules, R.menu.menu_modules);
+        pagerAdapter = new PagerAdapter(this);
+        binding.viewPager.setAdapter(pagerAdapter);
         binding.viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
-                updateProgress();
                 showFab();
             }
         });
 
         new TabLayoutMediator(binding.tabLayout, binding.viewPager, (tab, position) -> {
             if (position < adapters.size()) {
-                tab.setText(adapters.get(position).getUser().name);
+                tab.setText(adapters.valueAt(position).getUser().name);
             }
         }).attach();
 
-        if (users != null && users.size() != 1) {
-            binding.viewPager.setUserInputEnabled(true);
-            binding.tabLayout.setVisibility(View.VISIBLE);
-            binding.tabLayout.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
-                ViewGroup vg = (ViewGroup) binding.tabLayout.getChildAt(0);
-                int tabLayoutWidth = IntStream.range(0, binding.tabLayout.getTabCount()).map(i -> vg.getChildAt(i).getWidth()).sum();
-                if (tabLayoutWidth <= binding.getRoot().getWidth()) {
-                    binding.tabLayout.setTabMode(TabLayout.MODE_FIXED);
-                    binding.tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
-                }
-            });
-            binding.fab.show();
-        } else {
-            binding.viewPager.setUserInputEnabled(false);
-            binding.tabLayout.setVisibility(View.GONE);
-        }
-        binding.fab.setOnClickListener(v -> {
-            var pickAdaptor = new ModuleAdapter(adapters.get(binding.viewPager.getCurrentItem()).getUser(), true);
-            var position = binding.viewPager.getCurrentItem();
-            var user = adapters.get(position).getUser();
-            var binding = DialogRecyclerviewBinding.inflate(getLayoutInflater());
-            binding.list.setAdapter(pickAdaptor);
-            binding.list.setLayoutManager(new LinearLayoutManager(requireActivity()));
-            pickAdaptor.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-                @Override
-                public void onChanged() {
-                    binding.progress.setVisibility(pickAdaptor.isLoaded() ? View.GONE : View.VISIBLE);
-                }
-            });
-            pickAdaptor.refresh();
-            var dialog = new BlurBehindDialogBuilder(requireActivity())
-                    .setTitle(getString(R.string.install_to_user, user.name))
-                    .setView(binding.getRoot())
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-            pickAdaptor.setOnPickListener(picked -> {
-                var module = (ModuleUtil.InstalledModule) picked.getTag();
-                installModuleToUser(module, user);
-                dialog.dismiss();
-            });
+        binding.tabLayout.addOnLayoutChangeListener((view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) -> {
+            ViewGroup vg = (ViewGroup) binding.tabLayout.getChildAt(0);
+            int tabLayoutWidth = IntStream.range(0, binding.tabLayout.getTabCount()).map(i -> vg.getChildAt(i).getWidth()).sum();
+            if (tabLayoutWidth <= binding.getRoot().getWidth()) {
+                binding.tabLayout.setTabMode(TabLayout.MODE_FIXED);
+                binding.tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+            }
         });
+
+        binding.fab.setOnClickListener(v -> {
+            var bundle = new Bundle();
+            var user = adapters.valueAt(binding.viewPager.getCurrentItem()).getUser();
+            bundle.putParcelable("userInfo", user);
+            var f = new RecyclerViewDialogFragment();
+            f.setArguments(bundle);
+            f.show(getChildFragmentManager(), "install_to_user" + user.id);
+        });
+
+        moduleUtil.addListener(this);
+        repoLoader.addListener(this);
+        onModulesReloaded();
 
         return binding.getRoot();
     }
@@ -236,40 +191,76 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
     public void onPrepareOptionsMenu(Menu menu) {
         searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
         searchView.setOnQueryTextListener(searchListener);
+        searchView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View arg0) {
+                binding.appBar.setExpanded(false, true);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+            }
+        });
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        adapters.forEach(ModuleAdapter::refresh);
+        forEachAdaptor(ModuleAdapter::refresh);
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        moduleUtil.removeListener(this);
-    }
-
-    @Override
-    public void onSingleInstalledModuleReloaded(ModuleUtil.InstalledModule module) {
-        adapters.forEach(ModuleAdapter::refresh);
+    public void onSingleModuleReloaded(ModuleUtil.InstalledModule module) {
+        forEachAdaptor(ModuleAdapter::refresh);
     }
 
     @Override
     public void onModulesReloaded() {
-        adapters.forEach(ModuleAdapter::refresh);
+        var users = moduleUtil.getUsers();
+        if (users == null) return;
+
+        if (users.size() != 1) {
+            binding.viewPager.setUserInputEnabled(true);
+            binding.tabLayout.setVisibility(View.VISIBLE);
+            binding.fab.show();
+        } else {
+            binding.viewPager.setUserInputEnabled(false);
+            binding.tabLayout.setVisibility(View.GONE);
+        }
+
+        var tmp = new SparseArray<ModuleAdapter>(users.size());
+        var snapshot = adapters;
+        for (var user : users) {
+            if (snapshot.indexOfKey(user.id) >= 0) {
+                tmp.put(user.id, snapshot.get(user.id));
+            } else {
+                var adapter = new ModuleAdapter(user);
+                adapter.setHasStableIds(true);
+                tmp.put(user.id, adapter);
+            }
+        }
+        adapters = tmp;
+        forEachAdaptor(ModuleAdapter::refresh);
+        runOnUiThread(pagerAdapter::notifyDataSetChanged);
+        updateModuleSummary();
     }
 
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int itemId = item.getItemId();
-        if (itemId == R.id.menu_refresh) {
-            adapters.forEach(adapter -> adapter.refresh(true));
-        }
-        return super.onOptionsItemSelected(item);
+    public void onRepoLoaded() {
+        forEachAdaptor(ModuleAdapter::refresh);
     }
 
-    private void installModuleToUser(ModuleUtil.InstalledModule module, UserInfo user) {
+    private void updateModuleSummary() {
+        var moduleCount = moduleUtil.getEnabledModulesCount();
+        runOnUiThread(() -> {
+            if (binding != null) {
+                binding.toolbar.setSubtitle(moduleCount == -1 ? getString(R.string.loading) : getResources().getQuantityString(R.plurals.modules_enabled_count, moduleCount, moduleCount));
+                binding.toolbarLayout.setSubtitle(binding.toolbar.getSubtitle());
+            }
+        });
+    }
+
+    void installModuleToUser(ModuleUtil.InstalledModule module, UserInfo user) {
         new BlurBehindDialogBuilder(requireActivity())
                 .setTitle(getString(R.string.install_to_user, user.name))
                 .setMessage(getString(R.string.install_to_user_message, module.getAppName(), user.name))
@@ -279,11 +270,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
                             String text = success ?
                                     getString(R.string.module_installed, module.getAppName(), user.name) :
                                     getString(R.string.module_install_failed);
-                            if (binding != null && isResumed()) {
-                                Snackbar.make(binding.snackbar, text, Snackbar.LENGTH_LONG).show();
-                            } else {
-                                Toast.makeText(App.getInstance(), text, Toast.LENGTH_LONG).show();
-                            }
+                            showHint(text, false);
                             if (success)
                                 moduleUtil.reloadSingleModule(module.packageName, user.id);
                         }))
@@ -291,6 +278,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
                 .show();
     }
 
+    @SuppressLint("WrongConstant")
     @Override
     public boolean onContextItemSelected(@NonNull MenuItem item) {
         if (selectedModule == null) {
@@ -305,8 +293,6 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
             Intent intent = AppHelper.getSettingsIntent(packageName, selectedModule.userId);
             if (intent != null) {
                 ConfigManager.startActivityAsUserWithFeature(intent, selectedModule.userId);
-            } else {
-                Snackbar.make(binding.snackbar, R.string.module_no_ui, Snackbar.LENGTH_LONG).show();
             }
             return true;
         } else if (itemId == R.id.menu_other_app) {
@@ -326,11 +312,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
                             runAsync(() -> {
                                 boolean success = ConfigManager.uninstallPackage(selectedModule.packageName, selectedModule.userId);
                                 String text = success ? getString(R.string.module_uninstalled, selectedModule.getAppName()) : getString(R.string.module_uninstall_failed);
-                                if (binding != null && isResumed()) {
-                                    Snackbar.make(binding.snackbar, text, Snackbar.LENGTH_LONG).show();
-                                } else {
-                                    Toast.makeText(App.getInstance(), text, Toast.LENGTH_LONG).show();
-                                }
+                                showHint(text, false);
                                 if (success)
                                     moduleUtil.reloadSingleModule(selectedModule.packageName, selectedModule.userId);
                             }))
@@ -341,7 +323,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
             getNavController().navigate(ModulesFragmentDirections.actionModulesFragmentToRepoItemFragment(selectedModule.packageName, selectedModule.getAppName()));
             return true;
         } else if (itemId == R.id.menu_compile_speed) {
-            CompileDialogFragment.speed(getChildFragmentManager(), selectedModule.pkg.applicationInfo, binding.snackbar);
+            CompileDialogFragment.speed(getChildFragmentManager(), selectedModule.pkg.applicationInfo);
         }
         return super.onContextItemSelected(item);
     }
@@ -349,12 +331,33 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-
         moduleUtil.removeListener(this);
+        repoLoader.removeListener(this);
         binding = null;
     }
 
     public static class ModuleListFragment extends Fragment {
+        public SwiperefreshRecyclerviewBinding binding;
+        private ModuleAdapter adapter;
+        private final RecyclerView.AdapterDataObserver observer = new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                binding.swipeRefreshLayout.setRefreshing(!adapter.isLoaded());
+            }
+        };
+
+        private final View.OnAttachStateChangeListener searchViewLocker = new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+                binding.recyclerView.setNestedScrollingEnabled(false);
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                binding.recyclerView.setNestedScrollingEnabled(true);
+            }
+        };
+
         @Nullable
         @Override
         public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -363,13 +366,75 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
             if (fragment == null || arguments == null) {
                 return null;
             }
-            int position = arguments.getInt("position");
-            ItemRepoRecyclerviewBinding binding = ItemRepoRecyclerviewBinding.inflate(getLayoutInflater(), container, false);
-            binding.recyclerView.setAdapter(fragment.adapters.get(position));
-            RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(requireActivity());
-            binding.recyclerView.setLayoutManager(layoutManager);
+            int userId = arguments.getInt("user_id");
+            binding = SwiperefreshRecyclerviewBinding.inflate(getLayoutInflater(), container, false);
+            adapter = fragment.adapters.get(userId);
+            binding.recyclerView.setAdapter(adapter);
+            binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
+            binding.swipeRefreshLayout.setOnRefreshListener(adapter::fullRefresh);
+            binding.swipeRefreshLayout.setProgressViewEndTarget(true, binding.swipeRefreshLayout.getProgressViewEndOffset());
             RecyclerViewKt.fixEdgeEffect(binding.recyclerView, false, true);
+            adapter.registerAdapterDataObserver(observer);
             return binding.getRoot();
+        }
+
+        void attachListeners() {
+            var parent = getParentFragment();
+            if (parent instanceof ModulesFragment) {
+                var moduleFragment = (ModulesFragment) parent;
+                binding.recyclerView.getBorderViewDelegate().setBorderVisibilityChangedListener((top, oldTop, bottom, oldBottom) -> moduleFragment.binding.appBar.setLifted(!top));
+                moduleFragment.binding.appBar.setLifted(!binding.recyclerView.getBorderViewDelegate().isShowingTopBorder());
+                moduleFragment.searchView.addOnAttachStateChangeListener(searchViewLocker);
+                binding.recyclerView.setNestedScrollingEnabled(moduleFragment.searchView.isIconified());
+                View.OnClickListener l = v -> {
+                    if (moduleFragment.searchView.isIconified()) {
+                        binding.recyclerView.smoothScrollToPosition(0);
+                        moduleFragment.binding.appBar.setExpanded(true, true);
+                    }
+                };
+                moduleFragment.binding.clickView.setOnClickListener(l);
+                moduleFragment.binding.toolbar.setOnClickListener(l);
+            }
+        }
+
+        void detachListeners() {
+            binding.recyclerView.getBorderViewDelegate().setBorderVisibilityChangedListener(null);
+            var parent = getParentFragment();
+            if (parent instanceof ModulesFragment) {
+                var moduleFragment = (ModulesFragment) parent;
+                moduleFragment.searchView.removeOnAttachStateChangeListener(searchViewLocker);
+                binding.recyclerView.setNestedScrollingEnabled(true);
+            }
+        }
+
+        @Override
+        public void onStart() {
+            super.onStart();
+            attachListeners();
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            attachListeners();
+        }
+
+        @Override
+        public void onDestroyView() {
+            adapter.unregisterAdapterDataObserver(observer);
+            super.onDestroyView();
+        }
+
+        @Override
+        public void onPause() {
+            super.onPause();
+            detachListeners();
+        }
+
+        @Override
+        public void onStop() {
+            super.onStop();
+            detachListeners();
         }
     }
 
@@ -383,7 +448,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
         @Override
         public Fragment createFragment(int position) {
             Bundle bundle = new Bundle();
-            bundle.putInt("position", position);
+            bundle.putInt("user_id", adapters.keyAt(position));
             Fragment fragment = new ModuleListFragment();
             fragment.setArguments(bundle);
             return fragment;
@@ -396,11 +461,20 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
 
         @Override
         public long getItemId(int position) {
-            return position;
+            return adapters.keyAt(position);
+        }
+
+        @Override
+        public boolean containsItem(long itemId) {
+            return adapters.indexOfKey((int) itemId) >= 0;
         }
     }
 
-    private class ModuleAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<ModuleAdapter.ViewHolder> implements Filterable {
+    ModuleAdapter createPickModuleAdapter(UserInfo userInfo) {
+        return new ModuleAdapter(userInfo, true);
+    }
+
+    class ModuleAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<ModuleAdapter.ViewHolder> implements Filterable {
         private List<ModuleUtil.InstalledModule> searchList = new ArrayList<>();
         private List<ModuleUtil.InstalledModule> showList = new ArrayList<>();
         private final UserInfo user;
@@ -487,22 +561,20 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
                 }
                 sb.setSpan(foregroundColorSpan, sb.length() - warningText.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             }
-            if (repoLoader.isRepoLoaded()) {
-                var ver = repoLoader.getModuleLatestVersion(item.packageName);
-                if (ver != null && ver.upgradable(item.versionCode, item.versionName)) {
-                    if (warningText != null) sb.append("\n");
-                    String recommended = getString(R.string.update_available, ver.versionName);
-                    sb.append(recommended);
-                    final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(requireActivity().getTheme(), androidx.appcompat.R.attr.colorAccent));
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        final TypefaceSpan typefaceSpan = new TypefaceSpan(Typeface.create("sans-serif-medium", Typeface.NORMAL));
-                        sb.setSpan(typefaceSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    } else {
-                        final StyleSpan styleSpan = new StyleSpan(Typeface.BOLD);
-                        sb.setSpan(styleSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-                    }
-                    sb.setSpan(foregroundColorSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            var ver = repoLoader.getModuleLatestVersion(item.packageName);
+            if (ver != null && ver.upgradable(item.versionCode, item.versionName)) {
+                if (warningText != null) sb.append("\n");
+                String recommended = getString(R.string.update_available, ver.versionName);
+                sb.append(recommended);
+                final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(requireActivity().getTheme(), androidx.appcompat.R.attr.colorAccent));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    final TypefaceSpan typefaceSpan = new TypefaceSpan(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+                    sb.setSpan(typefaceSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                } else {
+                    final StyleSpan styleSpan = new StyleSpan(Typeface.BOLD);
+                    sb.setSpan(styleSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
                 }
+                sb.setSpan(foregroundColorSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             }
             if (sb.length() == 0) {
                 holder.hint.setVisibility(View.GONE);
@@ -515,7 +587,6 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
                 holder.root.setAlpha(moduleUtil.isModuleEnabled(item.packageName) ? 1.0f : .5f);
                 holder.itemView.setOnClickListener(v -> {
                     searchView.clearFocus();
-                    searchView.onActionViewCollapsed();
                     getNavController().navigate(ModulesFragmentDirections.actionModulesFragmentToAppListFragment(item.packageName, item.userId));
                 });
                 holder.itemView.setOnLongClickListener(v -> {
@@ -585,12 +656,15 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
         }
 
         public void refresh() {
-            refresh(false);
+            runAsync(reloadModules);
         }
 
-        public void refresh(boolean force) {
-            if (force) runAsync(moduleUtil::reloadInstalledModules);
-            runAsync(reloadModules);
+        public void fullRefresh() {
+            runAsync(() -> {
+                setLoaded(false);
+                moduleUtil.reloadInstalledModules();
+                refresh();
+            });
         }
 
         private final Runnable reloadModules = () -> {
@@ -634,7 +708,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
             });
             String queryStr = searchView != null ? searchView.getQuery().toString() : "";
             searchList = tmpList;
-            runOnUiThread(() -> getFilter().filter(queryStr, count -> setLoaded(true)));
+            runOnUiThread(() -> getFilter().filter(queryStr));
         };
 
         @SuppressLint("NotifyDataSetChanged")
@@ -647,7 +721,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
 
         @Override
         public boolean isLoaded() {
-            return isLoaded;
+            return isLoaded && moduleUtil.isModulesLoaded();
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
@@ -681,16 +755,12 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults filterResults = new FilterResults();
                 List<ModuleUtil.InstalledModule> filtered = new ArrayList<>();
-                if (constraint.toString().isEmpty()) {
-                    filtered.addAll(searchList);
-                } else {
-                    String filter = constraint.toString().toLowerCase();
-                    for (ModuleUtil.InstalledModule info : searchList) {
-                        if (lowercaseContains(info.getAppName(), filter) ||
-                                lowercaseContains(info.packageName, filter) ||
-                                lowercaseContains(info.getDescription(), filter)) {
-                            filtered.add(info);
-                        }
+                String filter = constraint.toString().toLowerCase();
+                for (ModuleUtil.InstalledModule info : searchList) {
+                    if (lowercaseContains(info.getAppName(), filter) ||
+                            lowercaseContains(info.packageName, filter) ||
+                            lowercaseContains(info.getDescription(), filter)) {
+                        filtered.add(info);
                     }
                 }
                 filterResults.values = filtered;
@@ -702,6 +772,7 @@ public class ModulesFragment extends BaseFragment implements ModuleUtil.ModuleLi
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 //noinspection unchecked
                 showList = (List<ModuleUtil.InstalledModule>) results.values;
+                setLoaded(true);
             }
         }
     }

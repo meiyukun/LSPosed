@@ -20,17 +20,15 @@
 
 package org.lsposed.manager.adapters;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.os.Looper;
 import android.view.MenuItem;
 
-import org.lsposed.lspd.models.Application;
-import org.lsposed.manager.App;
 import org.lsposed.manager.ConfigManager;
 import org.lsposed.manager.R;
 
@@ -47,6 +45,7 @@ public class AppHelper {
     private static List<PackageInfo> appList;
     private static final ConcurrentHashMap<PackageInfo, CharSequence> appLabel = new ConcurrentHashMap<>();
 
+    @SuppressLint("WrongConstant")
     public static Intent getSettingsIntent(String packageName, int userId) {
         Intent intentToResolve = new Intent(Intent.ACTION_MAIN);
         intentToResolve.addCategory(SETTINGS_CATEGORY);
@@ -66,6 +65,7 @@ public class AppHelper {
         return intent;
     }
 
+    @SuppressLint("WrongConstant")
     public static Intent getLaunchIntentForPackage(String packageName, int userId) {
         Intent intentToResolve = new Intent(Intent.ACTION_MAIN);
         intentToResolve.addCategory(Intent.CATEGORY_INFO);
@@ -153,6 +153,6 @@ public class AppHelper {
 
     public static CharSequence getAppLabel(PackageInfo info, PackageManager pm) {
         if (info == null || info.applicationInfo == null) return null;
-        return appLabel.computeIfAbsent(info, i->i.applicationInfo.loadLabel(pm));
+        return appLabel.computeIfAbsent(info, i -> i.applicationInfo.loadLabel(pm));
     }
 }

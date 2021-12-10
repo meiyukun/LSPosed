@@ -30,30 +30,38 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 
+import org.lsposed.lspd.models.UserInfo;
 import org.lsposed.manager.App;
 import org.lsposed.manager.ConfigManager;
 import org.lsposed.manager.repo.RepoLoader;
 import org.lsposed.manager.repo.model.OnlineModule;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ModuleUtil {
     // xposedminversion below this
     public static int MIN_MODULE_VERSION = 2; // reject modules with
     private static ModuleUtil instance = null;
     private final PackageManager pm;
-    private final List<ModuleListener> listeners = new CopyOnWriteArrayList<>();
+    private final Set<ModuleListener> listeners = ConcurrentHashMap.newKeySet();
     private HashSet<String> enabledModules = new HashSet<>();
+    private List<UserInfo> users = new ArrayList<>();
     private Map<Pair<String, Integer>, InstalledModule> installedModules = new HashMap<>();
-    private boolean isReloading = false;
+    private boolean modulesLoaded = false;
 
     private ModuleUtil() {
         pm = App.getInstance().getPackageManager();
+    }
+
+    public boolean isModulesLoaded() {
+        return modulesLoaded;
     }
 
     public static synchronized ModuleUtil getInstance() {
@@ -76,20 +84,15 @@ public final class ModuleUtil {
         return result;
     }
 
-    public void reloadInstalledModules() {
-        synchronized (this) {
-            if (isReloading)
-                return;
-            isReloading = true;
-        }
+    synchronized public void reloadInstalledModules() {
+        modulesLoaded = false;
         if (!ConfigManager.isBinderAlive()) {
-            synchronized (this) {
-                isReloading = false;
-            }
+            modulesLoaded = true;
             return;
         }
 
         Map<Pair<String, Integer>, InstalledModule> modules = new HashMap<>();
+        var users = ConfigManager.getUsers();
         for (PackageInfo pkg : ConfigManager.getInstalledPackagesFromAllUsers(PackageManager.GET_META_DATA, false)) {
             ApplicationInfo app = pkg.applicationInfo;
 
@@ -101,14 +104,16 @@ public final class ModuleUtil {
 
         installedModules = modules;
 
-        enabledModules = new HashSet<>(Arrays.asList(ConfigManager.getEnabledModules()));
-        synchronized (this) {
-            isReloading = false;
-        }
+        this.users = users;
 
-        for (var listener: listeners) {
-            listener.onModulesReloaded();
-        }
+        enabledModules = new HashSet<>(Arrays.asList(ConfigManager.getEnabledModules()));
+        modulesLoaded = true;
+        listeners.forEach(ModuleListener::onModulesReloaded);
+    }
+
+    @Nullable
+    public List<UserInfo> getUsers() {
+        return modulesLoaded ? users : null;
     }
 
     public InstalledModule reloadSingleModule(String packageName, int userId) {
@@ -116,19 +121,17 @@ public final class ModuleUtil {
     }
 
     public InstalledModule reloadSingleModule(String packageName, int userId, boolean packageFullyRemoved) {
-        if (packageFullyRemoved && isModuleEnabled(packageName))
+        if (packageFullyRemoved && isModuleEnabled(packageName)) {
             enabledModules.remove(packageName);
+            listeners.forEach(ModuleListener::onModulesReloaded);
+        }
         PackageInfo pkg;
 
         try {
             pkg = ConfigManager.getPackageInfo(packageName, PackageManager.GET_META_DATA, userId);
         } catch (NameNotFoundException e) {
             InstalledModule old = installedModules.remove(Pair.create(packageName, userId));
-            if (old != null) {
-                for (ModuleListener listener : listeners) {
-                    listener.onSingleInstalledModuleReloaded(old);
-                }
-            }
+            if (old != null) listeners.forEach(i -> i.onSingleModuleReloaded(old));
             return null;
         }
 
@@ -136,32 +139,28 @@ public final class ModuleUtil {
         if (app.metaData != null && app.metaData.containsKey("xposedminversion")) {
             InstalledModule module = new InstalledModule(pkg);
             installedModules.put(Pair.create(packageName, userId), module);
-            for (ModuleListener listener : listeners) {
-                listener.onSingleInstalledModuleReloaded(module);
-            }
+            listeners.forEach(i -> i.onSingleModuleReloaded(module));
             return module;
         } else {
             InstalledModule old = installedModules.remove(Pair.create(packageName, userId));
-            if (old != null) {
-                for (ModuleListener listener : listeners) {
-                    listener.onSingleInstalledModuleReloaded(old);
-                }
-            }
+            if (old != null) listeners.forEach(i -> i.onSingleModuleReloaded(old));
             return null;
         }
     }
 
+    @Nullable
     public InstalledModule getModule(String packageName, int userId) {
-        return installedModules.get(Pair.create(packageName, userId));
+        return modulesLoaded ? installedModules.get(Pair.create(packageName, userId)) : null;
     }
 
+    @Nullable
     public InstalledModule getModule(String packageName) {
         return getModule(packageName, 0);
     }
 
     @Nullable
     synchronized public Map<Pair<String, Integer>, InstalledModule> getModules() {
-        return isReloading ? null : installedModules;
+        return modulesLoaded ? installedModules : null;
     }
 
     public boolean setModuleEnabled(String packageName, boolean enabled) {
@@ -181,12 +180,11 @@ public final class ModuleUtil {
     }
 
     public int getEnabledModulesCount() {
-        return isReloading ? -1 : enabledModules.size();
+        return modulesLoaded ? enabledModules.size() : -1;
     }
 
     public void addListener(ModuleListener listener) {
-        if (!listeners.contains(listener))
-            listeners.add(listener);
+        listeners.add(listener);
     }
 
     public void removeListener(ModuleListener listener) {
@@ -198,7 +196,7 @@ public final class ModuleUtil {
          * Called whenever one (previously or now) installed module has been
          * reloaded
          */
-        default void onSingleInstalledModuleReloaded(InstalledModule module) {
+        default void onSingleModuleReloaded(InstalledModule module) {
 
         }
 
@@ -290,7 +288,7 @@ public final class ModuleUtil {
                     e.printStackTrace();
                 }
                 RepoLoader repoLoader = RepoLoader.getInstance();
-                if (scopeList == null && repoLoader.isRepoLoaded()) {
+                if (scopeList == null) {
                     OnlineModule module = repoLoader.getOnlineModule(packageName);
                     if (module != null && module.getScope() != null) {
                         scopeList = module.getScope();
