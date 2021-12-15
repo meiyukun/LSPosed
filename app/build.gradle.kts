@@ -17,15 +17,27 @@
  * Copyright (C) 2021 LSPosed Contributors
  */
 
-import com.android.build.api.component.analytics.AnalyticsEnabledApplicationVariant
-import com.android.build.api.variant.impl.ApplicationVariantImpl
 import com.android.build.gradle.internal.dsl.BuildType
 import java.nio.file.Paths
 import java.time.Instant
 
 plugins {
+    id("org.gradle.idea")
     id("com.android.application")
     id("androidx.navigation.safeargs")
+}
+
+// workaround for AS. TODO: Remove when AS 7.1 stable release
+val dataBinding = file("${project.buildDir}/generated/data_binding_base_class_source_out/debug/out")
+sourceSets {
+    create("dataBinding") {
+        java.srcDir(dataBinding)
+    }
+}
+idea {
+    module {
+        generatedSourceDirs.add(dataBinding)
+    }
 }
 
 val androidTargetSdkVersion: Int by rootProject.extra
@@ -114,16 +126,6 @@ android {
     }
 }
 
-androidComponents.onVariants { v ->
-    val variant: ApplicationVariantImpl =
-        if (v is ApplicationVariantImpl) v
-        else (v as AnalyticsEnabledApplicationVariant).delegate as ApplicationVariantImpl
-    variant.outputs.forEach {
-        it.outputFileName.set("LSPosedManager-v${verName}-${verCode}-${variant.name}.apk")
-    }
-}
-
-
 val optimizeReleaseRes = task("optimizeReleaseRes").doLast {
     val aapt2 = File(
         androidComponents.sdkComponents.sdkDirectory.get().asFile,
@@ -165,19 +167,19 @@ dependencies {
     annotationProcessor("com.github.bumptech.glide:compiler:$glideVersion")
     implementation("androidx.activity:activity:1.4.0")
     implementation("androidx.browser:browser:1.4.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.1")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.2")
     implementation("androidx.core:core:1.7.0")
-    implementation("androidx.fragment:fragment:1.3.6")
+    implementation("androidx.fragment:fragment:1.4.0")
     implementation("androidx.navigation:navigation-fragment:$navVersion")
     implementation("androidx.navigation:navigation-ui:$navVersion")
     implementation("androidx.preference:preference:1.1.1")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation("androidx.slidingpanelayout:slidingpanelayout:1.2.0-beta01")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
     implementation("com.github.bumptech.glide:glide:$glideVersion")
-    implementation("com.google.android.material:material:1.5.0-alpha05")
+    implementation("com.google.android.material:material:1.6.0-alpha01")
     implementation("com.google.code.gson:gson:2.8.9")
-    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.2"))
+    implementation(platform("com.squareup.okhttp3:okhttp-bom:4.9.3"))
     implementation("com.squareup.okhttp3:okhttp")
     implementation("com.squareup.okhttp3:okhttp-dnsoverhttps")
     implementation("com.squareup.okhttp3:logging-interceptor")
@@ -191,7 +193,7 @@ dependencies {
     implementation("dev.rikka.rikkax.widget:switchbar:1.0.2")
     implementation("dev.rikka.rikkax.layoutinflater:layoutinflater:1.1.0")
     implementation("me.zhanghai.android.appiconloader:appiconloader:1.3.1")
-    implementation("org.lsposed.hiddenapibypass:hiddenapibypass:2.0")
+    implementation("org.lsposed.hiddenapibypass:hiddenapibypass:3.0")
     implementation(project(":manager-service"))
 }
 
