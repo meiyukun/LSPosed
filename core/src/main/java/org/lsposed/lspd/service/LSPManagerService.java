@@ -35,6 +35,7 @@ import android.content.AttributionSource;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.LauncherApps;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -56,6 +57,7 @@ import android.os.SystemProperties;
 import android.system.ErrnoException;
 import android.system.Os;
 import android.util.Log;
+import android.view.IWindowManager;
 
 import androidx.annotation.NonNull;
 
@@ -307,10 +309,16 @@ public class LSPManagerService extends ILSPManagerService.Stub {
                     .build();
 
             for (var shortcutInfo : sm.getPinnedShortcuts()) {
-                if (SHORTCUT_ID.equals(shortcutInfo.getId())) {
-                    Log.d(TAG, "shortcut exists, updating");
-                    sm.updateShortcuts(Collections.singletonList(shortcut));
-                    return;
+                if (SHORTCUT_ID.equals(shortcutInfo.getId()) && shortcutInfo.isPinned()) {
+                    var shortcutIntent = sm.createShortcutResultIntent(shortcutInfo);
+                    var request = (LauncherApps.PinItemRequest)shortcutIntent.getParcelableExtra(LauncherApps.EXTRA_PIN_ITEM_REQUEST);
+                    var requestInfo = request.getShortcutInfo();
+                    // https://cs.android.com/android/platform/superproject/+/android-8.1.0_r1:frameworks/base/services/core/java/com/android/server/pm/ShortcutRequestPinProcessor.java;drc=4ad6b57700bef4c484021f49e018117046562e6b;l=337
+                    if (requestInfo.isPinned()) {
+                        Log.d(TAG, "shortcut exists, updating");
+                        sm.updateShortcuts(Collections.singletonList(shortcut));
+                        return;
+                    }
                 }
             }
             var configManager = ConfigManager.getInstance();
@@ -652,7 +660,14 @@ public class LSPManagerService extends ILSPManagerService.Stub {
             if (currentUser == null) return -1;
             var parent = UserService.getProfileParent(userId);
             if (parent < 0) return -1;
-            if (currentUser.id != parent && !ActivityManagerService.switchUser(parent)) return -1;
+            if (currentUser.id != parent) {
+                if (!ActivityManagerService.switchUser(parent)) return -1;
+                var window = android.os.ServiceManager.getService("window");
+                if (window != null) {
+                    var wm = IWindowManager.Stub.asInterface(window);
+                    wm.lockNow(null);
+                }
+            }
         }
         return ActivityManagerService.startActivityAsUserWithFeature("android", null, intent, intent.getType(), null, null, 0, 0, null, null, userId);
     }
