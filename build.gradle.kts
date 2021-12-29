@@ -23,6 +23,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven(url= "https://maven.aliyun.com/nexus/content/groups/public/")
     }
     val navVersion by extra("2.4.0-rc01")
     val agpVersion by extra("7.0.4")

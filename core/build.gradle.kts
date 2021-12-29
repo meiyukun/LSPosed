@@ -336,7 +336,6 @@ fun afterEval() = android.applicationVariants.forEach { variant ->
     zipAll.dependsOn(zipTask)
 
     val adb: String = androidComponents.sdkComponents.adb.get().asFile.absolutePath
-    val pushTask = task<Exec>("push${variantCapped}") {
     val phonePath="/sdcard/Download/"
     val pushTask = task("push${variantCapped}", Exec::class) {
         dependsOn(zipTask)
