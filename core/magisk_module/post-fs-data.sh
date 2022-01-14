@@ -21,9 +21,9 @@ MODDIR=${0%/*}
 
 FLAVOR=@FLAVOR@
 
-if ! [ "$ZYGISK_ENABLE" = "$([ $FLAVOR = "zygisk" ] && echo 1)" ]; then
+if ! [ "$ZYGISK_ENABLED" = "$([ $FLAVOR = "zygisk" ] && echo 1)" ]; then
   log -t "LSPosed" "$FLAVOR does not match, skipping"
   exit
 fi
-rm -f "/data/local/tmp/lspd.dex"
+rm -f "/data/local/tmp/daemon.apk"
 unshare -m sh -c "$MODDIR/lspd &"

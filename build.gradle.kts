@@ -24,11 +24,11 @@ buildscript {
         google()
         mavenCentral()
     }
-    val navVersion by extra("2.4.0-beta02")
-    val agpVersion by extra("7.0.3")
+    val navVersion by extra("2.4.0-rc01")
+    val agpVersion by extra("7.0.4")
     dependencies {
         classpath("com.android.tools.build:gradle:$agpVersion")
-        classpath("org.eclipse.jgit:org.eclipse.jgit:5.12.0.202106070339-r")
+        classpath("org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r")
         classpath("androidx.navigation:navigation-safe-args-gradle-plugin:$navVersion")
     }
 }
@@ -36,6 +36,9 @@ buildscript {
 val repo = FileRepository(rootProject.file(".git"))
 val refId = repo.refDatabase.exactRef("refs/remotes/origin/master").objectId!!
 val commitCount = Git(repo).log().add(refId).call().count()
+
+val injectedPackageName by extra("com.android.shell")
+val injectedPackageUid by extra(2000)
 
 val defaultManagerPackageName by extra("org.lsposed.manager")
 val apiCode by extra(93)
@@ -46,9 +49,6 @@ val androidMinSdkVersion by extra(27)
 val androidBuildToolsVersion by extra("32.0.0")
 val androidCompileSdkVersion by extra(32)
 val androidCompileNdkVersion by extra("23.1.7779620")
-val androidBuildToolsVersion by extra("31.0.0")
-val androidCompileSdkVersion by extra(31)
-val androidCompileNdkVersion by extra("23.0.7599858")
 val androidSourceCompatibility by extra(JavaVersion.VERSION_11)
 val androidTargetCompatibility by extra(JavaVersion.VERSION_11)
 

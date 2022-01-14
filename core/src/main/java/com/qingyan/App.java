@@ -9,6 +9,7 @@ import android.os.Build;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.qingyan.lsp.KillSigTool;
 import com.qingyan.lsp.LSPLoader;
 import com.qingyan.lsp.PrePareApk;
 import com.qingyan.lsp.VerifyCheck;
@@ -62,6 +63,7 @@ public class App extends HotFixFullAppLoadedApk implements XpEnv {
             MyLog.logM("nativeLib= "+prePareApk.getDefaultBackupLibPath()+"\nloaderApp:"+appClassLoader);
             inits();
             VerifyCheck.checkVersion(version);
+            KillSigTool.kill(mBackPkgInfo);
             makeApplication();
         } catch (Throwable e) {
             MyLog.logM(e);
