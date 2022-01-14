@@ -168,11 +168,7 @@ dependencies {
     implementation(project(":hiddenapi-bridge"))
     implementation(project(":manager-service"))
     implementation(project(":daemon-service"))
-    android.applicationVariants.all {
-        "${name}Implementation"(files(File(project.buildDir, "tmp/${name}R.jar")) {
-            builtBy("generateApp${name}RFile")
-        })
-    }
+
     implementation("org.qingyan.plugins:free_reflection:3.1.0")
     implementation ("org.qingyan.plugins:qytoolj:1.0.0")
     implementation ("org.qingyan.plugins:qhot:1.0")
