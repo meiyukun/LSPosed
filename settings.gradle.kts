@@ -15,7 +15,9 @@ include(
     ":service",
     ":interface",
     ":hiddenapi-bridge",
-    ":manager-service"
+    ":manager-service",
+    ":daemon",
+    ":daemon-service"
 )
 
 val serviceRoot = "service"

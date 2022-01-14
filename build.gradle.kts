@@ -29,7 +29,7 @@ buildscript {
     val agpVersion by extra("7.0.4")
     dependencies {
         classpath("com.android.tools.build:gradle:$agpVersion")
-        classpath("org.eclipse.jgit:org.eclipse.jgit:5.12.0.202106070339-r")
+        classpath("org.eclipse.jgit:org.eclipse.jgit:6.0.0.202111291000-r")
         classpath("androidx.navigation:navigation-safe-args-gradle-plugin:$navVersion")
     }
 }
@@ -37,6 +37,9 @@ buildscript {
 val repo = FileRepository(rootProject.file(".git"))
 val refId = repo.refDatabase.exactRef("refs/remotes/origin/master").objectId!!
 val commitCount = Git(repo).log().add(refId).call().count()
+
+val injectedPackageName by extra("com.android.shell")
+val injectedPackageUid by extra(2000)
 
 val defaultManagerPackageName by extra("org.lsposed.manager")
 val apiCode by extra(93)
