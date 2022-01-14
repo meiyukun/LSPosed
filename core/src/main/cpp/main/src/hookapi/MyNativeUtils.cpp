@@ -1,7 +1,5 @@
-#include "../../include/base/object.h"
-#include <jni.h>
-#include "native_util.h"
 #include "MyNativeUtils.h"
+#include "cocos2d/cocos2dhook.h"
 //extern "C"
 //JNIEXPORT void JNICALL
 //Java_com_qingyan_natives_LspNative_setAccessible(JNIEnv* env,jclass clazz, jlong address,jlong length) {
@@ -19,6 +17,8 @@ static JNINativeMethod gMethods[] = {
 namespace QyTool{
     void RegisterQyTool(JNIEnv *env){
         REGISTER_LSP_NATIVE_METHODS(LspNative);
+        RegisterCocos2dHook(env);
+//        RegisterNativeMethodsInternal(env,"org.lsposed.lspd.nativebridge.cocos2d.Cocos2dUtil");
     }
 }
 
