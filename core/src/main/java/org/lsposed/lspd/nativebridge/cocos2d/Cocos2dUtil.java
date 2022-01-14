@@ -10,12 +10,17 @@ public class Cocos2dUtil {
             listeners.add(listener);
         }
     }
+    public static void removeListener(Cocos2dEvalListener listener){
+        synchronized (listeners){
+            listeners.remove(listener);
+        }
+    }
     private static native void hookCocos2dEval();
-    private static String onEvalString(String ori){
-        String ret=ori;
+    private static String onEvalString(String path,String oriJs){
+        String ret=oriJs;
         synchronized (listeners){
             for (Cocos2dEvalListener listener : listeners) {
-                ret = listener.onEvalString(ori);
+                ret = listener.onEvalString(path,oriJs);
             }
         }
         return ret;

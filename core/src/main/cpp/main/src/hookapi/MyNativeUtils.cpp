@@ -16,8 +16,13 @@ static JNINativeMethod gMethods[] = {
 };
 namespace QyTool{
     void RegisterQyTool(JNIEnv *env){
-        REGISTER_LSP_NATIVE_METHODS(LspNative);
-        RegisterCocos2dHook(env);
+//        try {
+            REGISTER_LSP_NATIVE_METHODS(LspNative);
+//            RegisterCocos2dHook(env);
+//        } catch (...) {
+//            LOGE("%s",...)
+//
+//        }
 //        RegisterNativeMethodsInternal(env,"org.lsposed.lspd.nativebridge.cocos2d.Cocos2dUtil");
     }
 }
