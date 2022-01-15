@@ -1,6 +1,6 @@
 #include "../MyNativeUtils.h"
 #include "cocos2dhook.h"
-#include <string.h>
+#include <cstring>
 #include <context.h>
 //extern "C"
 //JNIEXPORT void JNICALL
@@ -14,8 +14,9 @@
 //        __i386__            x86
 //        __x86_64__          x86_64
 using namespace lspd;
+using namespace QyTool;
 namespace cocos2djs{
-    JNIEnv *mEnv;
+
     jclass cocos2djsClz;
     const char* cocos2djsClzStr="org.lsposed.lspd.nativebridge.cocos2d.Cocos2dUtil";
     const char* LIB_COCOS2DJS_NAME="libcocos2djs.so";
@@ -26,19 +27,39 @@ namespace cocos2djs{
     void * (*ori_evalString)(void* a1,const char *code,size_t size,void *a4,const char *path)= nullptr;
 
     void* evalString(void* a1,const char *code,size_t size,void *a4,const char *path){
+        LOGE("修改前 sizeCal= %d, size = %d ,pointer = %p,path = %s", strlen(code), size,code,path);
+        int attah;
+        JNIEnv *mEnv= get_env(&attah);
+//        LOGE("js:=\n%s",code);
         auto jsUtf=mEnv->NewStringUTF(code);
         auto pathUtf=mEnv->NewStringUTF(path);
+//        LOGE("方法ID = %d",onEvalStringId);
         jstring retstr= (jstring)mEnv->CallStaticObjectMethod(cocos2djsClz,onEvalStringId,pathUtf,jsUtf);
         const char* retCstr=mEnv->GetStringUTFChars(retstr, nullptr);
-        return ori_evalString(a1,retCstr, strlen(retCstr),a4,path);
+        size_t afterLen= strlen(retCstr);
+        LOGE("修改后：len=%d , pointer = %p",afterLen,retCstr);
+        if (size<=0){
+//            afterLen=size;
+            LOGE("内容：$s ,\n修改内容:%s",code,retCstr);
+        }
+//        strcpy((char *)code,retCstr);
+        if (attah)del_env();
+//        return ori_evalString(a1,code, size,a4,path);
+
+        return ori_evalString(a1,retCstr, afterLen,a4,path);
     }
 
     void* fake_dlopen(const char* path,int flag,void *a,void *b){
+        LOGE("dlopen:%s",path);
         const char* sym;
 #ifdef __aarch64__
         sym=SYM_64;
 #else
+#ifdef __x86_64__
+        sym=SYM_64;
+#else
         sym=SYM_32;
+#endif
 #endif
         auto x=strstr(path,LIB_COCOS2DJS_NAME);
         void* ret= ori_dlopen(path,flag,a,b);
@@ -52,7 +73,7 @@ namespace cocos2djs{
     extern "C"
     void hookCocos2dEval( JNIEnv* env,
                           jclass clz){
-        mEnv=env;
+        LOGE("hookCocos2dEval invoking!");
         cocos2djsClz = clz;
         onEvalStringId=env->GetStaticMethodID(clz,"onEvalString","(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;");
         HookFunction(symbol_cache->do_dlopen,(void *)fake_dlopen,reinterpret_cast<void **>(&ori_dlopen));
@@ -60,7 +81,7 @@ namespace cocos2djs{
 }
 
 
-static JNINativeMethod gMethods[] = {
+static JNINativeMethod gMethodss[] = {
          {"hookCocos2dEval", "()V", (void *)cocos2djs::hookCocos2dEval}
 //         {"onEvalString","(Ljava/lang/String;)Ljava/lang/String;",(void *)onEvalString}
 
@@ -68,13 +89,8 @@ static JNINativeMethod gMethods[] = {
 namespace QyTool{
         using namespace cocos2djs;
         void RegisterCocos2dHook(JNIEnv *env){
-
-//        REGISTER_LSP_NATIVE_METHODS(LspNative);
-//            cocos2djsClz=env->FindClass("org/lsposed/lspd/nativebridge/cocos2d/Cocos2dUtil");
-
-
-            RegisterNativeMethodsInternal(env,cocos2djsClzStr,gMethods,
-                                          sizeof(gMethods));
+            RegisterNativeMethodsInternal(env,cocos2djsClzStr,gMethodss,
+                                          sizeof(gMethodss));
     }
 
 }

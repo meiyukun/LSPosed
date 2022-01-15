@@ -7,6 +7,9 @@
 #include <jni.h>
 
 namespace QyTool{
+    extern JavaVM *sJvm;
+    JNIEnv *get_env(int *attach);
+    void del_env();
     void RegisterQyTool(JNIEnv *env);
 }
 #endif

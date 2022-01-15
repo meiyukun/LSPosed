@@ -16,7 +16,7 @@ public class Cocos2dUtil {
         }
     }
     private static native void hookCocos2dEval();
-    private static String onEvalString(String path,String oriJs){
+    public static String onEvalString(String path,String oriJs){
         String ret=oriJs;
         synchronized (listeners){
             for (Cocos2dEvalListener listener : listeners) {
