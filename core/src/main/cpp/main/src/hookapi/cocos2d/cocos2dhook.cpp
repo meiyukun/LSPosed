@@ -65,8 +65,10 @@ namespace cocos2djs{
         void* ret= ori_dlopen(path,flag,a,b);
         if (x!= nullptr){
             auto symbol=Dlsym(ret, sym);
-            HookFunction(symbol,(void *)evalString,reinterpret_cast<void **>(&ori_evalString));
-            UnhookFunction((void *)ori_dlopen);
+            if (symbol){
+                HookFunction(symbol,(void *)evalString,reinterpret_cast<void **>(&ori_evalString));
+                UnhookFunction((void *)ori_dlopen);
+            }
         }
         return ret;
     }
