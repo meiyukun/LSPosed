@@ -1,5 +1,6 @@
 #include "MyNativeUtils.h"
 #include "cocos2d/cocos2dhook.h"
+#include "lsp_hook.h"
 //extern "C"
 //JNIEXPORT void JNICALL
 //Java_com_qingyan_natives_LspNative_setAccessible(JNIEnv* env,jclass clazz, jlong address,jlong length) {
@@ -11,8 +12,15 @@ LSP_DEF_NATIVE_METHOD(void, LspNative, setAccessible, jlong address,jlong length
     _make_rwx((void*)address,
               length);
 }
+LSP_DEF_NATIVE_METHOD(void, LspNative, openHook, jstring oriPath,jstring newPath) {
+    auto oripath=env->GetStringUTFChars(oriPath, nullptr);
+    auto newpath=env->GetStringUTFChars(newPath, nullptr);
+    QyHook::OpenHook::hookPath(oripath,newpath);
+}
+
 static JNINativeMethod gMethods[] = {
-        LSP_NATIVE_METHOD(LspNative, setAccessible, "(JJ)V")
+        LSP_NATIVE_METHOD(LspNative, setAccessible, "(JJ)V"),
+        LSP_NATIVE_METHOD(LspNative, openHook, "(Ljava/lang/String;Ljava/lang/String;)V"),
 };
 namespace QyTool{
     JavaVM *sJvm;
