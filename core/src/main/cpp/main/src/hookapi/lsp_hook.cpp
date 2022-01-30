@@ -22,6 +22,8 @@ namespace QyHook{
         static map<const char* ,const char*> relocateMap;
         static bool hasHooked= false;
         int  (*ori_Openat)(int,const char *, int...)= nullptr;
+        int  (*ori_execl)(const char *path, const char *arg,void* d)= nullptr;
+
         int  (*ori_Open)(const char *, int...)= nullptr;
         int fakeOpenAt(int dirfd, const char* pathname, int flags){
             LOGE("openat：%s",pathname);
@@ -34,9 +36,15 @@ namespace QyHook{
             }
             return ori_Openat(dirfd,pathname,flags);
         }
-        int fakeOpen(const char * pathname, int flags...){
-            LOGE("open：%s",pathname);
-            return ori_Open(pathname,flags);
+        int fakeExecl(const char *path, const char *arg,void* d){
+            LOGE("调用了fakeExecl");
+            LOGE("execl：path = %s ; arg = %s",path,arg);
+            return ori_execl(path,arg,d);
+        }
+        void hookExecl(){
+            auto __execl=DlSyms("libc.so","popen");
+            LOGE("hook Execl成功？=%p", __execl);
+            HookFunction(__execl,(void*) fakeExecl, reinterpret_cast<void **>(&ori_execl));
         }
         void hookPath(const char* oriPath, const char* newPath){
             if(!hasHooked){
