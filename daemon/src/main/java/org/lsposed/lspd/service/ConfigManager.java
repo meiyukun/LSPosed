@@ -36,6 +36,7 @@ import android.os.HandlerThread;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.os.SELinux;
+import android.os.SharedMemory;
 import android.os.SystemClock;
 import android.system.ErrnoException;
 import android.system.Os;
@@ -436,6 +437,7 @@ public class ConfigManager {
             if (lastModuleCacheTime >= requestModuleCacheTime) return;
             else lastModuleCacheTime = SystemClock.elapsedRealtime();
         }
+        Set<SharedMemory> toClose = ConcurrentHashMap.newKeySet();
         try (Cursor cursor = db.query(true, "modules", new String[]{"module_pkg_name", "apk_path"},
                 "enabled = 1", null, null, null, null, null)) {
             if (cursor == null) {
@@ -447,7 +449,13 @@ public class ConfigManager {
             Set<String> obsoleteModules = new HashSet<>();
             // packageName, apkPath
             Map<String, String> obsoletePaths = new HashMap<>();
-            cachedModule.values().removeIf(m -> m.apkPath == null || !existsInGlobalNamespace(m.apkPath));
+            cachedModule.values().removeIf(m -> {
+                if (m.apkPath == null || !existsInGlobalNamespace(m.apkPath)) {
+                    toClose.addAll(m.file.preLoadedDexes);
+                    return true;
+                }
+                return false;
+            });
             while (cursor.moveToNext()) {
                 String packageName = cursor.getString(pkgNameIdx);
                 String apkPath = cursor.getString(apkPathIdx);
@@ -456,7 +464,7 @@ public class ConfigManager {
                 var oldModule = cachedModule.get(packageName);
                 PackageInfo pkgInfo = null;
                 try {
-                    pkgInfo = PackageService.getPackageInfo(packageName, MATCH_ALL_FLAGS, 0);
+                    pkgInfo = PackageService.getPackageInfoFromAllUsers(packageName, MATCH_ALL_FLAGS).values().stream().findFirst().orElse(null);
                 } catch (Throwable e) {
                     Log.w(TAG, "get package info of " + packageName, e);
                 }
@@ -508,6 +516,7 @@ public class ConfigManager {
             Log.d(TAG, module.getKey() + " " + module.getValue().apkPath);
         }
         cacheScopes();
+        toClose.forEach(SharedMemory::close);
     }
 
     private synchronized void cacheScopes() {
@@ -813,7 +822,7 @@ public class ConfigManager {
     }
 
     public boolean enableModule(String packageName) throws RemoteException {
-        PackageInfo pkgInfo = PackageService.getPackageInfo(packageName, PackageService.MATCH_ALL_FLAGS, 0);
+        PackageInfo pkgInfo = PackageService.getPackageInfoFromAllUsers(packageName, PackageService.MATCH_ALL_FLAGS).values().stream().findFirst().orElse(null);
         if (pkgInfo == null || pkgInfo.applicationInfo == null) {
             return false;
         }
@@ -980,6 +989,11 @@ public class ConfigManager {
         if (!getApi().equals("Zygisk")) return result;
         try (final SQLiteDatabase magiskDb =
                      SQLiteDatabase.openDatabase(ConfigFileManager.magiskDbPath, new SQLiteDatabase.OpenParams.Builder().addOpenFlags(SQLiteDatabase.OPEN_READONLY).build())) {
+            try (Cursor cursor = magiskDb.query("settings", new String[]{"value"}, "`key`=?", new String[]{"denylist"}, null, null, null)) {
+                if (!cursor.moveToNext()) return result;
+                int valueIndex = cursor.getColumnIndex("value");
+                if (valueIndex >= 0 && cursor.getInt(valueIndex) == 0) return result;
+            }
             try (Cursor cursor = magiskDb.query(true, "denylist", new String[]{"package_name"}, null, null, null, null, null, null, null)) {
                 if (cursor == null) return result;
                 int packageNameIdx = cursor.getColumnIndex("package_name");

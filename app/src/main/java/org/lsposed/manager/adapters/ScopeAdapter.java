@@ -78,14 +78,12 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import rikka.core.util.ResourceUtils;
-import qingyan.util.lsp.LspUtil;
-import rikka.core.res.ResourcesKt;
+import rikka.material.app.LocaleDelegate;
 import rikka.widget.switchbar.SwitchBar;
 
 @SuppressLint("NotifyDataSetChanged")
@@ -171,40 +169,7 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
         }
         return preferences.getBoolean("filter_system_apps", true) && (info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
     }
-    private void sortAppsPackageInfo(List<PackageInfo> list){
-        Comparator<PackageInfo> comparator = AppHelper.getAppListComparator(preferences.getInt("list_sort", 0), pm);
-        Comparator<PackageInfo> frameworkComparator = (a, b) -> {
-            if (a.packageName.equals("android") == b.packageName.equals("android")) {
-                return comparator.compare(a, b);
-            } else if (a.packageName.equals("android")) {
-                return -1;
-            } else {
-                return 1;
-            }
-        };
-        Comparator<PackageInfo> recommendedComparator = (a, b) -> {
-            boolean aRecommended = !recommendedList.isEmpty() && recommendedList.contains(ApplicationWithEquals.fromPackageInfo(a));
-            boolean bRecommended = !recommendedList.isEmpty() && recommendedList.contains(ApplicationWithEquals.fromPackageInfo(b));
-            if (aRecommended == bRecommended) {
-                return frameworkComparator.compare(a, b);
-            } else if (aRecommended) {
-                return -1;
-            } else {
-                return 1;
-            }
-        };
-        list.sort((a, b) -> {
-            boolean aChecked = checkedList.contains(ApplicationWithEquals.fromPackageInfo(a));
-            boolean bChecked = checkedList.contains(ApplicationWithEquals.fromPackageInfo(b));
-            if (aChecked == bChecked) {
-                return recommendedComparator.compare(a, b);
-            } else if (aChecked) {
-                return -1;
-            } else {
-                return 1;
-            }
-        });
-    }
+
     private int sortApps(AppInfo x, AppInfo y) {
         Comparator<PackageInfo> comparator = AppHelper.getAppListComparator(preferences.getInt("list_sort", 0), pm);
         Comparator<AppInfo> frameworkComparator = (a, b) -> {
@@ -288,7 +253,7 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
             preferences.edit().putBoolean("filter_denylist", item.isChecked()).apply();
         } else if (itemId == R.id.backup) {
             LocalDateTime now = LocalDateTime.now();
-            fragment.backupLauncher.launch(String.format(Locale.ROOT,
+            fragment.backupLauncher.launch(String.format(LocaleDelegate.getDefaultLocale(),
                     "%s_%s.lsp", module.getAppName(), now.toString()));
             return true;
         } else if (itemId == R.id.restore) {
@@ -333,10 +298,7 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
                         .setNegativeButton(android.R.string.cancel, null)
                         .show();
             }
-        }else if (itemId==R.id.menu_relaunch_app){
-            ConfigManager.reLaunchApp(info.packageName,info.uid/100000);
-        }
-        else {
+        } else {
             return false;
         }
         return true;
@@ -425,7 +387,7 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
         if (!recommendedList.isEmpty() && recommendedList.contains(appInfo.application)) {
             String recommended = activity.getString(R.string.requested_by_module);
             sb.append(recommended);
-            final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(activity.getTheme(), androidx.appcompat.R.attr.colorAccent));
+            final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(activity.getTheme(), com.google.android.material.R.attr.colorPrimary));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 final TypefaceSpan typefaceSpan = new TypefaceSpan(Typeface.create("sans-serif-medium", Typeface.NORMAL));
                 sb.setSpan(typefaceSpan, sb.length() - recommended.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
@@ -439,7 +401,7 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
             if (sb.length() != 0) sb.append("\n");
             String denylist = activity.getString(R.string.deny_list_info);
             sb.append(denylist);
-            final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(activity.getTheme(), rikka.material.R.attr.colorWarning));
+            final ForegroundColorSpan foregroundColorSpan = new ForegroundColorSpan(ResourceUtils.resolveColor(activity.getTheme(), com.google.android.material.R.attr.colorError));
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 final TypefaceSpan typefaceSpan = new TypefaceSpan(Typeface.create("sans-serif-medium", Typeface.NORMAL));
                 sb.setSpan(typefaceSpan, sb.length() - denylist.length(), sb.length(), Spannable.SPAN_INCLUSIVE_INCLUSIVE);
@@ -716,9 +678,6 @@ public class ScopeAdapter extends EmptyStateRecyclerView.EmptyStateAdapter<Scope
         @Override
         public int hashCode() {
             return Objects.hash(packageName, userId);
-        }
-        public static ApplicationWithEquals fromPackageInfo(PackageInfo packageInfo){
-            return new ApplicationWithEquals(packageInfo.packageName,packageInfo.applicationInfo.uid/100000);
         }
     }
 }

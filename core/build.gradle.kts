@@ -92,8 +92,8 @@ android {
     }
 
     lint {
-        isAbortOnError = true
-        isCheckReleaseBuilds = false
+        abortOnError = true
+        checkReleaseBuilds = false
     }
 
     buildTypes {
@@ -174,6 +174,9 @@ val zipAll = task("zipAll") {
 
 }
 
+val apkDir: String
+    get() = if (rootProject.extra.properties["android.injected.invoked.from.ide"] == "true") "intermediates" else "outputs"
+
 fun afterEval() = android.applicationVariants.forEach { variant ->
     val variantCapped = variant.name.capitalize(Locale.ROOT)
     val variantLowered = variant.name.toLowerCase(Locale.ROOT)
@@ -205,6 +208,7 @@ fun afterEval() = android.applicationVariants.forEach { variant ->
                 "versionName" to "v$verName",
                 "versionCode" to verCode,
                 "authorList" to authors,
+                "updateJson" to "https://lsposed.github.io/LSPosed/release/${flavorLowered}.json",
                 "requirement" to when (flavorLowered) {
                     "riru" -> "Requires Riru $moduleMinRiruVersionName or above installed"
                     "zygisk" -> "Requires Magisk 24.0+ and Zygisk enabled"
@@ -234,11 +238,11 @@ fun afterEval() = android.applicationVariants.forEach { variant ->
                 filter<FixCrLfFilter>("eol" to FixCrLfFilter.CrLf.newInstance("lf"))
             }
         }
-        from("${project(":app").buildDir}/outputs/apk/${buildTypeLowered}") {
+        from("${project(":app").buildDir}/$apkDir/apk/${buildTypeLowered}") {
             include("*.apk")
             rename(".*\\.apk", "manager.apk")
         }
-        from("${project(":daemon").buildDir}/outputs/apk/${buildTypeLowered}") {
+        from("${project(":daemon").buildDir}/$apkDir/apk/${buildTypeLowered}") {
             include("*.apk")
             rename(".*\\.apk", "daemon.apk")
         }
@@ -305,7 +309,7 @@ val killLspd = task<Exec>("killLspd") {
 }
 val pushDaemon = task<Exec>("pushDaemon") {
     dependsOn(":daemon:assembleDebug")
-    workingDir("${project(":daemon").buildDir}/outputs/apk/debug")
+    workingDir("${project(":daemon").buildDir}/$apkDir/apk/debug")
     commandLine(adb, "push", "daemon-debug.apk", "/data/local/tmp/daemon.apk")
 }
 val pushDaemonNative = task<Exec>("pushDaemonNative") {
@@ -324,13 +328,14 @@ val pushDaemonNative = task<Exec>("pushDaemonNative") {
 }
 val reRunDaemon = task<Exec>("reRunDaemon") {
     dependsOn(pushDaemon, pushDaemonNative, killLspd)
-    commandLine(adb, "shell", "su", "-c", "sh `su -c magisk --path`/.magisk/modules/*_lsposed/service.sh&")
+    // tricky to pass a minus number to avoid the injection warning
+    commandLine(adb, "shell", "su", "-c", "sh `su -c magisk --path`/.magisk/modules/*_lsposed/service.sh --system-server-max-retry=-1&")
     isIgnoreExitValue = true
 }
 val tmpApk = "/data/local/tmp/lsp.apk"
 val pushApk = task<Exec>("pushApk") {
     dependsOn(":app:assembleDebug")
-    workingDir("${project(":app").buildDir}/outputs/apk/debug")
+    workingDir("${project(":app").buildDir}/$apkDir/apk/debug")
     commandLine(adb, "push", "app-debug.apk", tmpApk)
 }
 val openApp = task<Exec>("openApp") {
