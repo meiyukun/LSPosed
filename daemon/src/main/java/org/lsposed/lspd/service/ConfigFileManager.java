@@ -7,6 +7,7 @@ import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.ParcelFileDescriptor;
 import android.os.Process;
+import android.os.RemoteException;
 import android.os.SELinux;
 import android.os.SharedMemory;
 import android.system.ErrnoException;
@@ -22,8 +23,12 @@ import org.lsposed.lspd.util.Utils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
@@ -42,10 +47,10 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 
 import hidden.HiddenApiBridge;
 
@@ -53,10 +58,10 @@ public class ConfigFileManager {
     static final Path basePath = Paths.get("/data/adb/lspd");
     static final Path daemonApkPath = Paths.get(System.getProperty("java.class.path", null));
     static final Path managerApkPath = basePath.resolve("manager.apk");
+    static final File magiskDbPath = new File("/data/adb/magisk.db");
     private static final Path lockPath = basePath.resolve("lock");
     private static final Path configDirPath = basePath.resolve("config");
     static final File dbPath = configDirPath.resolve("modules_config.db").toFile();
-    static final File magiskDbPath = new File("/data/adb/magisk.db");
     private static final Path logDirPath = basePath.resolve("log");
     private static final Path oldLogDirPath = basePath.resolve("log.old");
     private static final DateTimeFormatter formatter =
@@ -74,6 +79,15 @@ public class ConfigFileManager {
             createLogDirPath();
         } catch (IOException e) {
             Log.e(TAG, Log.getStackTraceString(e));
+        }
+    }
+
+    public static void transfer(InputStream in, OutputStream out) throws IOException {
+        int size = 8192;
+        var buffer = new byte[size];
+        int read;
+        while ((read = in.read(buffer, 0, size)) >= 0) {
+            out.write(buffer, 0, read);
         }
     }
 
@@ -194,25 +208,72 @@ public class ConfigFileManager {
         return logDirPath.resolve("props.txt").toFile();
     }
 
-    static Map<String, ParcelFileDescriptor> getLogs() {
-        var map = new LinkedHashMap<String, ParcelFileDescriptor>();
-        try {
-            putFds(map, logDirPath);
-            putFds(map, oldLogDirPath);
-            putFds(map, Paths.get("/data/tombstones"));
-            putFds(map, Paths.get("/data/anr"));
-        } catch (IOException e) {
-            Log.e(TAG, "getLogs", e);
+    static void getLogs(ParcelFileDescriptor zipFd) throws RemoteException {
+        try (var os = new ZipOutputStream(new FileOutputStream(zipFd.getFileDescriptor()))) {
+            zipAddDir(os, logDirPath);
+            zipAddDir(os, oldLogDirPath);
+            zipAddDir(os, Paths.get("/data/tombstones"));
+            zipAddDir(os, Paths.get("/data/anr"));
+            zipAddProcOutput(os, "full.log", "logcat", "-b", "all", "-d");
+            zipAddProcOutput(os, "dmesg.log", "dmesg");
+            var magiskDataDir = Paths.get("/data/adb");
+            Files.list(magiskDataDir.resolve("modules")).forEach(p -> {
+                zipAddFile(os, p.resolve("module.prop"), magiskDataDir);
+                zipAddFile(os, p.resolve("remove"), magiskDataDir);
+                zipAddFile(os, p.resolve("disable"), magiskDataDir);
+                zipAddFile(os, p.resolve("update"), magiskDataDir);
+                zipAddFile(os, p.resolve("sepolicy.rule"), magiskDataDir);
+            });
+            ConfigManager.getInstance().exportScopes(os);
+        } catch (Throwable e) {
+            Log.w(TAG, "get log", e);
+            throw new RemoteException(Log.getStackTraceString(e));
         }
-        return map;
     }
 
-    private static void putFds(Map<String, ParcelFileDescriptor> map, Path path) throws IOException {
+    private static void zipAddProcOutput(ZipOutputStream os, String name, String... command) {
+        try (var is = new ProcessBuilder(command).start().getInputStream()) {
+            os.putNextEntry(new ZipEntry(name));
+            transfer(is, os);
+            os.closeEntry();
+        } catch (IOException e) {
+            Log.w(TAG, name, e);
+        }
+    }
+
+    private static void zipAddFile(ZipOutputStream os, Path path, Path base) {
+        var name = base.relativize(path).toString();
+        if (Files.exists(path)) {
+            try (var is = new FileInputStream(path.toFile())) {
+                os.putNextEntry(new ZipEntry(name));
+                transfer(is, os);
+                os.closeEntry();
+            } catch (IOException e) {
+                Log.w(TAG, name, e);
+            }
+        } else {
+            try {
+                os.putNextEntry(new ZipEntry(name));
+                os.closeEntry();
+            } catch (IOException e) {
+                Log.w(TAG, name, e);
+            }
+        }
+    }
+
+    private static void zipAddDir(ZipOutputStream os, Path path) throws IOException {
         Files.walkFileTree(path, new SimpleFileVisitor<>() {
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                var name = path.getParent().relativize(file).toString();
-                var fd = ParcelFileDescriptor.open(file.toFile(), ParcelFileDescriptor.MODE_READ_ONLY);
-                map.put(name, fd);
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                if (Files.isRegularFile(file)) {
+                    var name = path.getParent().relativize(file).toString();
+                    try (var is = new FileInputStream(file.toFile())) {
+                        os.putNextEntry(new ZipEntry(name));
+                        transfer(is, os);
+                        os.closeEntry();
+                    } catch (IOException e) {
+                        Log.w(TAG, name, e);
+                    }
+                }
                 return FileVisitResult.CONTINUE;
             }
         });

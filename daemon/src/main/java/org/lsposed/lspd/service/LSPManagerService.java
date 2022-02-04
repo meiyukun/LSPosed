@@ -719,8 +719,8 @@ public class LSPManagerService extends ILSPManagerService.Stub {
     }
 
     @Override
-    public Map<String, ParcelFileDescriptor> getLogs() {
-        return ConfigFileManager.getLogs();
+    public void getLogs(ParcelFileDescriptor zipFd) throws RemoteException {
+        ConfigFileManager.getLogs(zipFd);
     }
 
     @Override
