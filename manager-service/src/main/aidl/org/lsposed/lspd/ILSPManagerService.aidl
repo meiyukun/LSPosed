@@ -76,6 +76,10 @@ interface ILSPManagerService {
 
     List<String> getDenyListPackages() = 41;
 
-     List<RecentTaskInfo> getRecentTasks(int maxNum, int flags,int userId)=42;
+    boolean getDexObfuscate() = 42;
+
+    void setDexObfuscate(boolean enable) = 43;
+
+     List<RecentTaskInfo> getRecentTasks(int maxNum, int flags,int userId)=44;
 
 }

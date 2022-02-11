@@ -113,6 +113,14 @@ android {
             }
         }
     }
+
+    sourceSets {
+        named("main") {
+            res {
+                srcDirs("src/common/res")
+            }
+        }
+    }
 }
 
 val optimizeReleaseRes = task("optimizeReleaseRes").doLast {
@@ -183,7 +191,7 @@ afterEvaluate {
 }
 
 dependencies {
-    val glideVersion = "4.12.0"
+    val glideVersion = "4.13.0"
     val navVersion: String by rootProject.extra
     annotationProcessor("com.github.bumptech.glide:compiler:$glideVersion")
     implementation("androidx.activity:activity:1.4.0")
@@ -204,7 +212,7 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp-dnsoverhttps")
     implementation("com.squareup.okhttp3:logging-interceptor")
     implementation("dev.rikka.rikkax.appcompat:appcompat:1.4.1")
-    implementation("dev.rikka.rikkax.core:core:1.3.3")
+    implementation("dev.rikka.rikkax.core:core:1.3.4")
     implementation("dev.rikka.rikkax.insets:insets:1.2.0")
     implementation("dev.rikka.rikkax.material:material:1.6.6")
     implementation("dev.rikka.rikkax.preference:simplemenu-preference:1.0.3")
@@ -213,7 +221,7 @@ dependencies {
     implementation("dev.rikka.rikkax.widget:switchbar:1.0.2")
     implementation("dev.rikka.rikkax.layoutinflater:layoutinflater:1.2.0")
     implementation("me.zhanghai.android.appiconloader:appiconloader:1.3.1")
-    implementation("org.lsposed.hiddenapibypass:hiddenapibypass:4.2")
+    implementation("org.lsposed.hiddenapibypass:hiddenapibypass:4.3")
     implementation(project(":manager-service"))
 
     val appCenter = "4.4.2"

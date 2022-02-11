@@ -87,6 +87,7 @@ public class ConfigManager {
             SQLiteDatabase.openOrCreateDatabase(ConfigFileManager.dbPath, null);
 
     private boolean verboseLog = true;
+    private boolean dexObfuscate = false;
     private boolean autoAddShortcut = true;
     private String miscPath = null;
 
@@ -222,6 +223,9 @@ public class ConfigManager {
         Object bool = config.get("enable_verbose_log");
         verboseLog = bool == null || (boolean) bool;
 
+        bool = config.get("enable_dex_obfuscate");
+        dexObfuscate = bool != null && (boolean) bool;
+
         bool = config.get("enable_auto_add_shortcut");
         if (bool == null) {
             updateModulePrefs("lspd", 0, "config", "enable_auto_add_shortcut", true);
@@ -267,11 +271,16 @@ public class ConfigManager {
     }
 
     static ConfigManager getInstance() {
+        return getInstance(true);
+    }
+
+    static ConfigManager getInstance(boolean needCached) {
         if (instance == null)
             instance = new ConfigManager();
-        boolean needCached;
-        synchronized (instance.cacheHandler) {
-            needCached = instance.lastModuleCacheTime == 0 || instance.lastScopeCacheTime == 0;
+        if (needCached) {
+            synchronized (instance.cacheHandler) {
+                needCached = instance.lastModuleCacheTime == 0 || instance.lastScopeCacheTime == 0;
+            }
         }
         if (needCached) {
             if (PackageService.isAlive()) {
@@ -825,17 +834,17 @@ public class ConfigManager {
     }
 
     public boolean enableModule(String packageName) throws RemoteException {
+        if (packageName.equals("lspd")) return false;
         PackageInfo pkgInfo = PackageService.getPackageInfoFromAllUsers(packageName, PackageService.MATCH_ALL_FLAGS).values().stream().findFirst().orElse(null);
-        if (pkgInfo == null || pkgInfo.applicationInfo == null) {
-            return false;
-        }
-        if (packageName.equals("lspd") || !updateModuleApkPath(packageName, getModuleApkPath(pkgInfo.applicationInfo), false))
-            return false;
-        boolean changed = executeInTransaction(() -> {
+        if (pkgInfo == null || pkgInfo.applicationInfo == null) return false;
+        var modulePath = getModuleApkPath(pkgInfo.applicationInfo);
+        if (modulePath == null) return false;
+        boolean changed = updateModuleApkPath(packageName, modulePath, false);
+        changed = executeInTransaction(() -> {
             ContentValues values = new ContentValues();
             values.put("enabled", 1);
             return db.update("modules", values, "module_pkg_name = ?", new String[]{packageName}) > 0;
-        });
+        }) || changed;
         if (changed) {
             // Called by manager, should be async
             updateCaches(false);
@@ -867,6 +876,19 @@ public class ConfigManager {
         verboseLog = on;
     }
 
+    public boolean verboseLog() {
+        return BuildConfig.DEBUG || verboseLog;
+    }
+
+    public void setDexObfuscate(boolean on) {
+        updateModulePrefs("lspd", 0, "config", "enable_dex_obfuscate", on);
+        dexObfuscate = on;
+    }
+
+    public boolean dexObfuscate() {
+        return dexObfuscate;
+    }
+
     public boolean isAddShortcut() {
         Log.d(TAG, "Auto add shortcut=" + autoAddShortcut);
         return autoAddShortcut;
@@ -875,10 +897,6 @@ public class ConfigManager {
     public void setAddShortcut(boolean on) {
         updateModulePrefs("lspd", 0, "config", "enable_auto_add_shortcut", on);
         this.autoAddShortcut = on;
-    }
-
-    public boolean verboseLog() {
-        return BuildConfig.DEBUG || verboseLog;
     }
 
     public ParcelFileDescriptor getManagerApk() {

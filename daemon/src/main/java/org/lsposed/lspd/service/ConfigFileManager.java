@@ -1,3 +1,22 @@
+/*
+ * This file is part of LSPosed.
+ *
+ * LSPosed is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * LSPosed is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with LSPosed.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Copyright (C) 2021 - 2022 LSPosed Contributors
+ */
+
 package org.lsposed.lspd.service;
 
 import static org.lsposed.lspd.service.ServiceManager.TAG;
@@ -17,6 +36,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import org.lsposed.daemon.BuildConfig;
 import org.lsposed.lspd.models.PreLoadedApk;
 import org.lsposed.lspd.util.InstallerVerifier;
 import org.lsposed.lspd.util.Utils;
@@ -48,6 +68,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -210,6 +232,10 @@ public class ConfigFileManager {
 
     static void getLogs(ParcelFileDescriptor zipFd) throws RemoteException {
         try (var os = new ZipOutputStream(new FileOutputStream(zipFd.getFileDescriptor()))) {
+            var comment = String.format(Locale.ROOT, "LSPosed %s %s (%d)",
+                    BuildConfig.BUILD_TYPE, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE);
+            os.setComment(comment);
+            os.setLevel(Deflater.BEST_COMPRESSION);
             zipAddDir(os, logDirPath);
             zipAddDir(os, oldLogDirPath);
             zipAddDir(os, Paths.get("/data/tombstones"));
@@ -218,6 +244,7 @@ public class ConfigFileManager {
             zipAddProcOutput(os, "dmesg.log", "dmesg");
             var magiskDataDir = Paths.get("/data/adb");
             Files.list(magiskDataDir.resolve("modules")).forEach(p -> {
+                zipAddFile(os, p, magiskDataDir);
                 zipAddFile(os, p.resolve("module.prop"), magiskDataDir);
                 zipAddFile(os, p.resolve("remove"), magiskDataDir);
                 zipAddFile(os, p.resolve("disable"), magiskDataDir);
@@ -243,17 +270,17 @@ public class ConfigFileManager {
 
     private static void zipAddFile(ZipOutputStream os, Path path, Path base) {
         var name = base.relativize(path).toString();
-        if (Files.exists(path)) {
-            try (var is = new FileInputStream(path.toFile())) {
+        if (Files.isDirectory(path)) {
+            try {
                 os.putNextEntry(new ZipEntry(name));
-                transfer(is, os);
                 os.closeEntry();
             } catch (IOException e) {
                 Log.w(TAG, name, e);
             }
-        } else {
-            try {
+        } else if (Files.exists(path)) {
+            try (var is = new FileInputStream(path.toFile())) {
                 os.putNextEntry(new ZipEntry(name));
+                transfer(is, os);
                 os.closeEntry();
             } catch (IOException e) {
                 Log.w(TAG, name, e);
@@ -288,8 +315,12 @@ public class ConfigFileManager {
                 var byteBuffer = memory.mapReadWrite();
                 Channels.newChannel(in).read(byteBuffer);
                 SharedMemory.unmap(byteBuffer);
-                memory.setProtect(OsConstants.PROT_READ);
-                preLoadedDexes.add(memory);
+                var new_memory = ObfuscationManager.obfuscateDex(memory);
+                if (memory != new_memory) {
+                    memory.close();
+                }
+                new_memory.setProtect(OsConstants.PROT_READ);
+                preLoadedDexes.add(new_memory);
             } catch (IOException | ErrnoException e) {
                 Log.w(TAG, "Can not load " + dexFile + " in " + apkFile, e);
             }

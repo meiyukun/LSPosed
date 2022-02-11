@@ -85,7 +85,7 @@ extract "$ZIPFILE" 'service.sh'         "$MODPATH"
 extract "$ZIPFILE" 'uninstall.sh'       "$MODPATH"
 extract "$ZIPFILE" 'framework/lspd.dex' "$MODPATH"
 extract "$ZIPFILE" 'daemon.apk'         "$MODPATH"
-extract "$ZIPFILE" 'lspd'               "$MODPATH"
+extract "$ZIPFILE" 'daemon'             "$MODPATH"
 rm -f /data/adb/lspd/manager.apk
 extract "$ZIPFILE" 'manager.apk'        '/data/adb/lspd'
 
@@ -149,7 +149,6 @@ elif [ "$FLAVOR" == "riru" ]; then
     mv "$MODPATH/riru" "$MODPATH/system"
     mv "$MODPATH/system/lib/lib$RIRU_MODULE_LIB_NAME.so" "$MODPATH/system/lib/libriru_$RIRU_MODULE_LIB_NAME.so"
     mv "$MODPATH/system/lib64/lib$RIRU_MODULE_LIB_NAME.so" "$MODPATH/system/lib64/libriru_$RIRU_MODULE_LIB_NAME.so"
-    mv "$MODPATH/framework" "$MODPATH/system/framework"
     if [ "$RIRU_API" -ge 26 ]; then
       mkdir -p "$MODPATH/riru/lib"
       mkdir -p "$MODPATH/riru/lib64"
@@ -162,7 +161,7 @@ elif [ "$FLAVOR" == "riru" ]; then
 fi
 
 set_perm_recursive "$MODPATH" 0 0 0755 0644
-chmod 0744 "$MODPATH/lspd"
+chmod 0744 "$MODPATH/daemon"
 
 if [ "$(grep_prop ro.maple.enable)" == "1" ] && [ "$FLAVOR" == "zygisk" ]; then
   ui_print "- Add ro.maple.enable=0"

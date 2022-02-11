@@ -19,6 +19,7 @@
 
 package org.lsposed.manager.ui.fragment;
 
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
@@ -151,6 +152,17 @@ public class SettingsFragment extends BaseFragment {
                         ConfigManager.setVerboseLogEnabled(!(boolean) newValue));
             }
 
+            SwitchPreference prefDexObfuscate = findPreference("enable_dex_obfuscate");
+            if (prefDexObfuscate != null) {
+                prefDexObfuscate.setEnabled(installed);
+                prefDexObfuscate.setChecked(!installed || ConfigManager.isDexObfuscateEnabled());
+                prefDexObfuscate.setOnPreferenceChangeListener((preference, newValue) -> {
+                    parentFragment.showHint(R.string.reboot_required, true, R.string.reboot,
+                            v -> ConfigManager.reboot(false));
+                    return ConfigManager.setDexObfuscateEnabled((boolean) newValue);
+                });
+            }
+
             SwitchPreference prefEnableShortcut = findPreference("enable_auto_add_shortcut");
             if (prefEnableShortcut != null) {
                 prefEnableShortcut.setEnabled(installed);
@@ -176,9 +188,14 @@ public class SettingsFragment extends BaseFragment {
                 backup.setEnabled(installed);
                 backup.setOnPreferenceClickListener(preference -> {
                     LocalDateTime now = LocalDateTime.now();
-                    backupLauncher.launch(String.format(LocaleDelegate.getDefaultLocale(),
-                            "LSPosed_%s.lsp", now.toString()));
-                    return true;
+                    try {
+                        backupLauncher.launch(String.format(LocaleDelegate.getDefaultLocale(),
+                                "LSPosed_%s.lsp", now.toString()));
+                        return true;
+                    } catch (ActivityNotFoundException e) {
+                        parentFragment.showHint(R.string.enable_documentui, true);
+                        return false;
+                    }
                 });
             }
 
@@ -186,8 +203,13 @@ public class SettingsFragment extends BaseFragment {
             if (restore != null) {
                 restore.setEnabled(installed);
                 restore.setOnPreferenceClickListener(preference -> {
-                    restoreLauncher.launch(new String[]{"*/*"});
-                    return true;
+                    try {
+                        restoreLauncher.launch(new String[]{"*/*"});
+                        return true;
+                    } catch (ActivityNotFoundException e) {
+                        parentFragment.showHint(R.string.enable_documentui, true);
+                        return false;
+                    }
                 });
             }
 
@@ -258,6 +280,11 @@ public class SettingsFragment extends BaseFragment {
                 language.setOnPreferenceChangeListener((preference, newValue) -> {
                     var locale = SYSTEM.equals(newValue) ? LocaleDelegate.getSystemLocale() : Locale.forLanguageTag((String) newValue);
                     LocaleDelegate.setDefaultLocale(locale);
+                    var res = App.getInstance().getResources();
+                    var config = res.getConfiguration();
+                    config.setLocale(locale);
+                    var metric = res.getDisplayMetrics();
+                    App.getInstance().getResources().updateConfiguration(config, metric);
                     MainActivity activity = (MainActivity) getActivity();
                     if (activity != null) {
                         activity.restart();
