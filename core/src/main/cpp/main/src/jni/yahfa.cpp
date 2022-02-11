@@ -94,7 +94,7 @@ namespace lspd {
     }
 
     LSP_DEF_NATIVE_METHOD(jclass, Yahfa, buildHooker, jobject app_class_loader, jchar return_class,
-                          jcharArray classes, jstring method_name, jstring target_class_name) {
+                          jcharArray classes, jstring method_name, jstring hooker_name) {
         static auto *kInMemoryClassloader = JNI_NewGlobalRef(env, JNI_FindClass(env,
                                                                                 "dalvik/system/InMemoryDexClassLoader"));
         static jmethodID kInitMid = JNI_GetMethodID(env, kInMemoryClassloader, "<init>",
@@ -114,12 +114,12 @@ namespace lspd {
                     params[i] == 'L' ? TypeDescriptor::Object : TypeDescriptor::FromDescriptor(
                             (char) params[i]));
         }
-        auto clz_name= env->GetStringUTFChars(target_class_name,nullptr);
-        ClassBuilder cbuilder{dex_file.MakeClass(clz_name)};
+
+        ClassBuilder cbuilder{dex_file.MakeClass("LspHooker_")};
         cbuilder.set_source_file("LSP");
 
         auto hooker_type =
-                TypeDescriptor::FromClassname("de.robv.android.xposed.LspHooker");
+                TypeDescriptor::FromClassname(JUTFString(env, hooker_name).get());
 
         auto *hooker_field = cbuilder.CreateField("hooker", hooker_type)
                 .access_flags(dex::kAccStatic)
@@ -194,10 +194,10 @@ namespace lspd {
             kMid = JNI_GetMethodID(env, kInMemoryClassloader, "findClass",
                                    "(Ljava/lang/String;)Ljava/lang/Class;");
         }
-        auto target = JNI_CallObjectMethod(env, my_cl, kMid, target_class_name);
-//        LOGD("Created %zd", image.size());
-        if (target) {
-            return (jclass) target.release();
+        if (my_cl) {
+            auto target = JNI_CallObjectMethod(env, my_cl, kMid,
+                                               JNI_NewStringUTF(env, "LspHooker_"));
+            if (target) return (jclass) target.release();
         }
         return nullptr;
     }

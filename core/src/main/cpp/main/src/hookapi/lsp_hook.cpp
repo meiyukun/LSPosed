@@ -9,14 +9,14 @@
 #include "../jni/yahfa.h"
 #include <logging.h>
 #include <context.h>
+#include "../../include/base/object.h"
 using namespace std;
 using namespace lspd;
 namespace QyHook{
 
     void* DlSyms(const char* libName,const char* sym){
-        using namespace lspd;
-        const SandHook::ElfImg libcElf=SandHook::ElfImg(libName);
-        return Dlsym(libcElf,sym);
+
+        return DlSyms(libName,sym);
     }
     namespace OpenHook{
         static map<const char* ,const char*> relocateMap;
