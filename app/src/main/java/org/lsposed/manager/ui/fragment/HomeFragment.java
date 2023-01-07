@@ -42,7 +42,7 @@ import org.lsposed.manager.databinding.DialogAboutBinding;
 import org.lsposed.manager.databinding.FragmentHomeBinding;
 import org.lsposed.manager.ui.dialog.BlurBehindDialogBuilder;
 import org.lsposed.manager.ui.dialog.FlashDialogBuilder;
-import org.lsposed.manager.ui.dialog.ShortcutDialog;
+import org.lsposed.manager.ui.dialog.WelcomeDialog;
 import org.lsposed.manager.util.NavUtil;
 import org.lsposed.manager.util.Telemetry;
 import org.lsposed.manager.util.UpdateUtil;
@@ -61,7 +61,7 @@ public class HomeFragment extends BaseFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ShortcutDialog.showIfNeed(getChildFragmentManager());
+        WelcomeDialog.showIfNeed(getChildFragmentManager());
     }
 
     @Override
@@ -156,7 +156,7 @@ public class HomeFragment extends BaseFragment {
 
         if (ConfigManager.isBinderAlive()) {
             binding.apiVersion.setText(String.valueOf(ConfigManager.getXposedApiVersion()));
-            binding.api.setText(ConfigManager.getApi());
+            binding.api.setText(ConfigManager.isDexObfuscateEnabled() ? R.string.enabled : R.string.not_enabled);
             binding.frameworkVersion.setText(String.format(LocaleDelegate.getDefaultLocale(), "%1$s (%2$d)", ConfigManager.getXposedVersionName(), ConfigManager.getXposedVersionCode()));
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                 binding.dex2oatWrapper.setText(String.format(LocaleDelegate.getDefaultLocale(), "%s (%s)", getString(R.string.unsupported), getString(R.string.android_version_unsatisfied)));
@@ -196,7 +196,7 @@ public class HomeFragment extends BaseFragment {
                 "\n" +
                 binding.apiVersion.getText() +
                 "\n\n" +
-                activity.getString(R.string.info_api) +
+                activity.getString(R.string.settings_xposed_api_call_protection) +
                 "\n" +
                 binding.api.getText() +
                 "\n\n" +
@@ -248,7 +248,7 @@ public class HomeFragment extends BaseFragment {
         @NonNull
         @Override
         public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-            DialogAboutBinding binding = DialogAboutBinding.inflate(LayoutInflater.from(requireActivity()), null, false);
+            DialogAboutBinding binding = DialogAboutBinding.inflate(getLayoutInflater(), null, false);
             binding.designAboutTitle.setText(R.string.app_name);
             binding.designAboutInfo.setMovementMethod(LinkMovementMethod.getInstance());
             binding.designAboutInfo.setTransformationMethod(new LinkTransformationMethod(requireActivity()));

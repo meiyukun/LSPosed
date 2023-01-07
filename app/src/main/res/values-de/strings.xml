@@ -23,13 +23,13 @@
     <string name="overview">Übersicht</string>
     <string name="Modules">Module</string>
     <plurals name="modules_enabled_count">
-        <item quantity="one">%d Modul aktiviert</item>
+        <item quantity="one">%d Module aktiviert</item>
         <item quantity="other">%d Module aktiviert</item>
     </plurals>
     <string name="Logs">Protokolle</string>
     <string name="Settings">Einstellungen</string>
     <string name="feedback_or_suggestion">Feedback oder Verbesserungsideen</string>
-    <string name="About">Mehr Erfahren</string>
+    <string name="About">Über</string>
     <string name="report_issue">Fehler melden</string>
     <string name="module_repo">Modularchiv</string>
     <string name="module_repo_loading">Wird geladen…</string>
@@ -40,7 +40,7 @@
         <item quantity="one">%d Modul Update verfügbar</item>
         <item quantity="other">%d Modul Updates verfügbar</item>
     </plurals>
-    <string name="about_view_source_code"><![CDATA[Den Quellcode finden Sie unter %1$s<br/>Folgen Sie unserem %2$s-Kanal]]></string>
+    <string name="about_view_source_code"><![CDATA[Den Quellcode auf %1$s ansehen<br/>Folge unserem %2$s-Kanal]]></string>
     <string name="translators" comment="Dear translators, please add your home page here following the format. There can be more than one translator. So feel free to append yourself.">mshinni80, 
 JJ108</string>
     <string name="install">Installieren</string>
@@ -57,28 +57,33 @@ JJ108</string>
     <string name="system_prop_incorrect"><![CDATA[Einige notwendige Systemeigenschaften wurden gelöscht oder geändert.<br/>Module können gelegentlich außer Kraft gesetzt werden.]]></string>
     <string name="need_update">Aktualisierung erforderlich</string>
     <string name="please_update_summary">Bitte installieren Sie die neueste Version von LSPosed</string>
-    <string name="lsposed_not_active">LSPosed ist derzeit nicht installiert oder läuft nicht.</string>
+    <string name="lsposed_not_active">LSPosed ist derzeit nicht installiert oder aktiv.</string>
     <string name="info_api_version">API Version</string>
     <string name="info_framework_version">Framework Version</string>
     <string name="info_manager_version">Manager Version</string>
     <string name="info_system_version">System Version</string>
     <string name="info_device">Gerät</string>
     <string name="info_system_abi">System ABI</string>
-    <string name="info_api">Injektionsschnittstelle</string>
     <string name="info_dex2oat_wrapper">Dex Optimizer Wrapper</string>
+    <string name="enabled">Aktiviert</string>
+    <string name="not_enabled">Deaktiviert</string>
     <string name="supported">Unterstützt</string>
-    <string name="unsupported">Nicht unterstützte</string>
-    <string name="android_version_unsatisfied">Android-Version unzufrieden</string>
+    <string name="unsupported">Nicht unterstützt</string>
+    <string name="android_version_unsatisfied">Android-Version passt nicht</string>
     <string name="crashed">Abgestürzt</string>
-    <string name="mount_failed">Montage fehlgeschlagen</string>
-    <string name="selinux_permissive">SELinux ist freizügig</string>
+    <string name="mount_failed">Mounten fehlgeschlagen</string>
+    <string name="selinux_permissive">SELinux ist permissiv</string>
     <string name="sepolicy_incorrect">SELinux-Richtlinie ist falsch</string>
-    <string name="parasitic_recommend">Parasitärer Manager empfohlen</string>
-    <string name="parasitic_recommend_summary">LSPosed unterstützt nun eine Systemparasitierung, um die Erkennung zu vermeiden. Sie können den Manager sicher deinstallieren, nachdem Sie erfolgreich eine Verknüpfung des parasitären Managers erstellt haben. In jedem Fall können Sie den Manager von /data/adb/lspd/manager.apk wieder erneut installieren.</string>
+    <string name="update_lsposed">Bitte LSPosed aktualisieren</string>
+    <string name="update_lsposed_msg">Soll LSPosed aktualisiert werden? Dieses Gerät wird nach dem Update neu gestartet</string>
+    <!-- WelcomeDialog -->
+    <string name="parasitic_welcome">Willkommen bei LSPosed</string>
+    <string name="parasitic_welcome_summary">Sie verwenden den parasitären Manager, der eine Verknüpfung erstellen oder über eine Benachrichtigung noch geöffnet werden kann.</string>
+    <string name="parasitic_welcome_summary_no_shortcut_support">Sie verwenden den parasitären Manager, der von der Benachrichtigung geöffnet werden kann.</string>
     <string name="create_shortcut">Verknüpfung erstellen</string>
     <string name="never_show">Niemals anzeigen</string>
-    <string name="update_lsposed">LSPosed aktualisieren</string>
-    <string name="update_lsposed_msg">Soll LSPosed aktualisiert werden? Dieses Gerät wird nach dem Update neu gestartet</string>
+    <string name="app_welcome">Parasitärer Manager empfohlen</string>
+    <string name="app_welcome_summary">LSPosed unterstützt nun Systemparasitisierung, um eine Erkennung zu vermeiden. Sie können den parasitären Manager über die Benachrichtigung öffnen. Es wird empfohlen, die aktuelle Anwendung zu deinstallieren.</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Speichern</string>
     <string name="nav_item_logs_verbose">Ausführliche Protokolle</string>
@@ -161,7 +166,8 @@ JJ108</string>
     <string name="list_empty">¯\\\\_(ツ)_\/¯\nNichts hier</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Framework</string>
-    <string name="pref_title_disable_verbose_log">Deaktivieren Sie ausführliche Protokolle</string>
+    <string name="settings_disable_verbose_log">Ausführliche Protokolle deaktivieren</string>
+    <string name="settings_disable_verbose_log_summary">Ausführliche Protokolle in Problemberichtsmeldungen einschließen</string>
     <string name="pure_black_dark_theme">Dunkelschwarzes Design</string>
     <string name="pure_black_dark_theme_summary">Das schwarze Design verwenden, wenn dunkles Design aktiviert ist</string>
     <string name="settings_group_theme">Design</string>
@@ -183,17 +189,19 @@ JJ108</string>
     <string name="settings_group_system">System</string>
     <string name="settings_language">Sprache</string>
     <string name="settings_translation_contributors">Übersetzer</string>
-    <string name="settings_translation">An der Übersetzung beteiligen</string>
+    <string name="settings_translation">Beim Übersetzen mitmachen</string>
     <string name="settings_translation_summary">Helfen Sie uns, %s in Ihre Sprache zu übersetzen</string>
-    <string name="pref_title_enable_auto_add_shortcut">Verknüpfung automatisch hinzufügen</string>
-    <string name="create_shortcut_summary">Erzeuge manuell eine Verknüpfung zum parasitären Manager</string>
-    <string name="settings_enable_auto_add_shortcut_summary">Keine neuen Verknüpfungen werden hinzugefügt, wenn sie im nicht-parasitären Manager deaktiviert werden</string>
+    <string name="settings_create_shortcut_summary">Eine Verknüpfung zum Öffnen des parasitären Managers erstellen</string>
+    <string name="settings_created_shortcut_summary">Eine Verknüpfung zum Öffnen des parasitären Managers wurde erstellt</string>
+    <string name="settings_enable_status_notification">Status-Benachrichtigung</string>
+    <string name="settings_enable_status_notification_summary">Eine Benachrichtigung anzeigen, die den parasitären Manager öffnen kann</string>
+    <string name="disable_status_notification_error">Keine Verknüpfung, Benachrichtigung kann nicht deaktiviert werden</string>
     <string name="settings_update_channel">Update-Kanal</string>
     <string name="update_channel_stable">Stabil</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Nightly Build</string>
-    <string name="pref_title_restrict_classloader">Nur der Modul-Classloader kann die Xposed API nutzen</string>
-    <string name="pref_summary_restrict_classloader">Einige Mudule können dann nicht mehr funktionieren, erhöht jedoch der Sicherheit (experimentelle Funktion)</string>
+    <string name="settings_xposed_api_call_protection">Xposed API-Aufrufschutz</string>
+    <string name="settings_xposed_api_call_protection_summary">Dynamisch geladenen Modulcode blockieren, um Xposed API zu verwenden. Einige Module werden nicht mehr funktionieren, aber die Sicherheit profitiert davon (experimentelle Funktion)</string>
     <!-- Module Repo -->
     <string name="module_readme">Liesmich</string>
     <string name="module_releases">Veröffentlichungen</string>
@@ -211,7 +219,6 @@ JJ108</string>
     <!-- CrashReportActivity -->
     <string name="version_mismatch">Die Version vom LSPosed Framework (%1$d) stimmt nicht mit dem Manager (%2$d) überein. Bitte installiere LSPosed erneut.</string>
     <string name="manager_crashed">Manager abgestürzt</string>
-    <string name="manager_crashed_info">melde dies an </string>
     <string name="send_crash_info">Absturzinfo senden</string>
     <string name="crash_info_copied">Absturzinfo in die Zwischenablage kopiert</string>
     <string name="info_copied">In die Zwischenablage kopiert</string>
@@ -228,11 +235,15 @@ JJ108</string>
     <string name="color_teal">Blaugrün</string>
     <string name="color_green">Grün</string>
     <string name="color_light_green">Hellgrün</string>
-    <string name="color_lime">Hellgrün</string>
+    <string name="color_lime">Limette</string>
     <string name="color_yellow">Gelb</string>
-    <string name="color_amber">Gelborange</string>
+    <string name="color_amber">Bernstein</string>
     <string name="color_orange">Orange</string>
     <string name="color_deep_orange">Dunkelorange</string>
     <string name="color_brown">Braun</string>
     <string name="color_blue_grey">Blaugrau</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="one">%d Download</item>
+        <item quantity="other">%d Downloads</item>
+    </plurals>
 </resources>

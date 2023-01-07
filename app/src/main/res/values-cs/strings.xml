@@ -67,8 +67,9 @@
     <string name="info_system_version">Verze systému</string>
     <string name="info_device">Zařízení</string>
     <string name="info_system_abi">Systémové ABI (architektura)</string>
-    <string name="info_api">Závislost modulu</string>
     <string name="info_dex2oat_wrapper">Dex Optimizer Wrapper</string>
+    <string name="enabled">Povoleno</string>
+    <string name="not_enabled">Není povoleno</string>
     <string name="supported">Podporováno</string>
     <string name="unsupported">Nepodporováno</string>
     <string name="android_version_unsatisfied">Verze Androidu není spokojena</string>
@@ -76,12 +77,16 @@
     <string name="mount_failed">Připojení se nezdařilo</string>
     <string name="selinux_permissive">SELinux je permisivní</string>
     <string name="sepolicy_incorrect">Zásady SELinuxu jsou nesprávné</string>
-    <string name="parasitic_recommend">Doporučený parazitický správce</string>
-    <string name="parasitic_recommend_summary">LSPosed nyní podporuje parazitizaci systému, aby se zabránilo detekci. Správce můžete bezpečně odinstalovat po úspěšném vytvoření zástupce parazitického manažera. V jakémkoli případě můžete správce nainstalovat zpět z /data/adb/lspd/manager.apk.</string>
-    <string name="create_shortcut">Vytvořit zástupce</string>
-    <string name="never_show">Nikdy nezobrazovat</string>
     <string name="update_lsposed">Aktualizovat LSPosed</string>
     <string name="update_lsposed_msg">Potvrdit aktualizaci LSPosed? Toto zařízení se restartuje po dokončení aktualizace</string>
+    <!-- WelcomeDialog -->
+    <string name="parasitic_welcome">Vítejte v LSPosed</string>
+    <string name="parasitic_welcome_summary">Používáte parazitního správce, který může vytvořit zástupce nebo se stále otevírat z oznámení.</string>
+    <string name="parasitic_welcome_summary_no_shortcut_support">Používáte parazitního správce, který se může otevřít z oznámení.</string>
+    <string name="create_shortcut">Vytvořit zástupce</string>
+    <string name="never_show">Nikdy nezobrazovat</string>
+    <string name="app_welcome">Doporučený parazitický manažer</string>
+    <string name="app_welcome_summary">LSPosed nyní podporuje parazitování systému. K zabránění detekce můžete správce parazitů otevřít z oznámení. Doporučuje se odinstalovat aktuální aplikaci.</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Uložit</string>
     <string name="nav_item_logs_verbose">Podrobné protokoly</string>
@@ -164,7 +169,8 @@
     <string name="list_empty">&lt;unk&gt; \\\\_(&lt;unk&gt; )_\/ &lt;unk&gt;\nTady nic není</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Framework</string>
-    <string name="pref_title_disable_verbose_log">Zakázat podrobné protokoly</string>
+    <string name="settings_disable_verbose_log">Zakázat podrobné protokoly</string>
+    <string name="settings_disable_verbose_log_summary">Nahlásit požadavek na problémy a zahrnout detailní záznamy</string>
     <string name="pure_black_dark_theme">Čistě černý motiv</string>
     <string name="pure_black_dark_theme_summary">Použít čistý černý motiv, pokud je tmavý motiv povolen</string>
     <string name="settings_group_theme">Vzhled</string>
@@ -188,15 +194,17 @@
     <string name="settings_translation_contributors">Přispěvatelé překladu</string>
     <string name="settings_translation">Účast na překladu</string>
     <string name="settings_translation_summary">Pomozte nám přeložit %s do vašeho jazyka</string>
-    <string name="pref_title_enable_auto_add_shortcut">Automaticky přidat zástupce</string>
-    <string name="create_shortcut_summary">Ručně vytvořit zástupce parazitického manažera</string>
-    <string name="settings_enable_auto_add_shortcut_summary">Žádné nové zkratky nebudou přidány, pokud jsou vypnuty v neparazitickém správci</string>
+    <string name="settings_create_shortcut_summary">Vytvoření zástupce, který může otevřít parazitního správce</string>
+    <string name="settings_created_shortcut_summary">Byl vytvořen zástupce pro otevření parazitního správce</string>
+    <string name="settings_enable_status_notification">Oznámení o stavu</string>
+    <string name="settings_enable_status_notification_summary">Zobrazení oznámení, které může otevřít parazitního správce</string>
+    <string name="disable_status_notification_error">Žádný zástupce, nelze zakázat oznámení</string>
     <string name="settings_update_channel">Kanál aktualizace</string>
     <string name="update_channel_stable">Stabilní</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Noční sestavení</string>
-    <string name="pref_title_restrict_classloader">Pouze modul classloader může používat rozhraní Xposed API</string>
-    <string name="pref_summary_restrict_classloader">Může to narušit některé moduly, ale prospěje to zabezpečení (experimentální funkce)</string>
+    <string name="settings_xposed_api_call_protection">Ochrana volání rozhraní Xposed API</string>
+    <string name="settings_xposed_api_call_protection_summary">Blokování dynamicky načítaného kódu modulu pro použití rozhraní Xposed API, což může narušit některé moduly, ale prospěje bezpečnosti (experimentální funkce)</string>
     <!-- Module Repo -->
     <string name="module_readme">Přečti si mě</string>
     <string name="module_releases">Vydání</string>
@@ -214,7 +222,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">Verze LSPosed (%1$d) neodpovídá správci (%2$d). Prosím přeinstalujte LSPosed.</string>
     <string name="manager_crashed">Manažer selhal</string>
-    <string name="manager_crashed_info">nahlásit to </string>
     <string name="send_crash_info">Odeslat informace o pádu</string>
     <string name="crash_info_copied">Informace o pádu zkopírovány do schránky</string>
     <string name="info_copied">Zkopírováno do schránky</string>
@@ -238,4 +245,10 @@
     <string name="color_deep_orange">Tmavě oranžová</string>
     <string name="color_brown">Hnědá</string>
     <string name="color_blue_grey">Modro-šedivá</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="one">%d stažení</item>
+        <item quantity="few">%d ke stažení</item>
+        <item quantity="many">%d ke stažení</item>
+        <item quantity="other">%d ke stažení</item>
+    </plurals>
 </resources>

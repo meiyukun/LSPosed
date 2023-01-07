@@ -63,8 +63,9 @@
     <string name="info_system_version">Systeem versie</string>
     <string name="info_device">Apparaat</string>
     <string name="info_system_abi">Systeem ABI</string>
-    <string name="info_api">Injectie interface</string>
     <string name="info_dex2oat_wrapper">Dex Optimizer Wrapper</string>
+    <string name="enabled">Ingeschakeld</string>
+    <string name="not_enabled">Niet ingeschakeld</string>
     <string name="supported">Ondersteund</string>
     <string name="unsupported">Niet-ondersteunde</string>
     <string name="android_version_unsatisfied">Android versie onbevredigd</string>
@@ -72,12 +73,15 @@
     <string name="mount_failed">Berg mislukt</string>
     <string name="selinux_permissive">SELinux is permissief</string>
     <string name="sepolicy_incorrect">SELinux beleid is onjuist</string>
-    <string name="parasitic_recommend">Parasitaire manager aanbevolen</string>
-    <string name="parasitic_recommend_summary">LSPosed ondersteunt nu parasitisering van het systeem om detectie te voorkomen. U kunt de manager veilig deïnstalleren na het maken van een snelkoppeling van de parastische manager. In elk geval kunt u de manager installeren vanuit /data/adb/lspd/manager.apk.</string>
-    <string name="create_shortcut">Snelkoppeling maken</string>
-    <string name="never_show">Nooit tonen</string>
     <string name="update_lsposed">Update LSPosed</string>
     <string name="update_lsposed_msg">Bevestig bijwerken van LSPosed? Dit apparaat zal opnieuw opstarten nadat de update is voltooid</string>
+    <!-- WelcomeDialog -->
+    <string name="parasitic_welcome">Welkom bij LSPosed</string>
+    <string name="parasitic_welcome_summary">U gebruikt de parasitaire manager, die een snelkoppeling kan maken of nog steeds kan openen vanuit een melding.</string>
+    <string name="create_shortcut">Snelkoppeling maken</string>
+    <string name="never_show">Nooit tonen</string>
+    <string name="app_welcome">Parasitaire manager aanbevolen</string>
+    <string name="app_welcome_summary">LSPosed ondersteunt nu systeemparasitisatie om detectie te voorkomen, u kunt parasitaire manager openen vanuit een melding. Het wordt aanbevolen om de huidige applicatie te verwijderen.</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Opslaan</string>
     <string name="nav_item_logs_verbose">Uitgebreide logs</string>
@@ -160,7 +164,8 @@
     <string name="list_empty">¯\\\\_(ツ)_\/¯\nNiets hier</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Framework</string>
-    <string name="pref_title_disable_verbose_log">Schakel uitgebreide logboeken uit</string>
+    <string name="settings_disable_verbose_log">Schakel uitgebreide logboeken uit</string>
+    <string name="settings_disable_verbose_log_summary">Rapporteer problemen verzoek om uitgebreide logboeken op te nemen</string>
     <string name="pure_black_dark_theme">Zwarte donkere thema</string>
     <string name="pure_black_dark_theme_summary">Gebruik het pure zwarte thema als het donkere thema is ingeschakeld</string>
     <string name="settings_group_theme">Thema</string>
@@ -184,15 +189,17 @@
     <string name="settings_translation_contributors">Bijdragers van vertalingen</string>
     <string name="settings_translation">Deelnemen aan vertaling</string>
     <string name="settings_translation_summary">Help ons %s te vertalen in uw taal</string>
-    <string name="pref_title_enable_auto_add_shortcut">Snelkoppeling automatisch toevoegen</string>
-    <string name="create_shortcut_summary">Maak handmatig een snelkoppeling naar parasitic manager</string>
-    <string name="settings_enable_auto_add_shortcut_summary">Er zullen geen nieuwe snelkoppelingen worden toegevoegd wanneer uitgeschakeld in de niet-parasitaire manager</string>
+    <string name="settings_create_shortcut_summary">Maak een snelkoppeling die parasitaire manager kan openen</string>
+    <string name="settings_created_shortcut_summary">Er is een snelkoppeling gemaakt om parasitaire manager te openen</string>
+    <string name="settings_enable_status_notification">Statusmelding</string>
+    <string name="settings_enable_status_notification_summary">Toon een melding die parasitaire manager kan openen</string>
+    <string name="disable_status_notification_error">Geen snelkoppeling, kan melding niet uitschakelen</string>
     <string name="settings_update_channel">Kanaal bijwerken</string>
     <string name="update_channel_stable">Stabiel</string>
     <string name="update_channel_bate">Bèta</string>
     <string name="update_channel_nightly">Nachtelijke bouw</string>
-    <string name="pref_title_restrict_classloader">Alleen module classloader kan Xposed API gebruiken</string>
-    <string name="pref_summary_restrict_classloader">Dit kan sommige modules breken maar de veiligheid ten goede komen (experimentele functie)</string>
+    <string name="settings_xposed_api_call_protection">Xposed API-oproepbeveiliging</string>
+    <string name="settings_xposed_api_call_protection_summary">Blokkeer dynamisch geladen modulecode om Xposed API te gebruiken, dit kan sommige modules breken maar komt de veiligheid ten goede (experimentele functie)</string>
     <!-- Module Repo -->
     <string name="module_readme">Leesmij</string>
     <string name="module_releases">Publicaties</string>
@@ -210,7 +217,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">De versie van het LSPosed framework (%1$d) komt niet overeen met manager (%2$d). Herinstalleer LSPosed.</string>
     <string name="manager_crashed">Manager gecrasht</string>
-    <string name="manager_crashed_info">meld dit aan </string>
     <string name="send_crash_info">Stuur crash informatie</string>
     <string name="crash_info_copied">Crash informatie naar klembord gekopieerd</string>
     <string name="info_copied">Gekopieerd naar klembord</string>
@@ -234,4 +240,8 @@
     <string name="color_deep_orange">Diep oranje</string>
     <string name="color_brown">Bruin</string>
     <string name="color_blue_grey">Blauw grijs</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="one">%d download</item>
+        <item quantity="other">%d downloads</item>
+    </plurals>
 </resources>

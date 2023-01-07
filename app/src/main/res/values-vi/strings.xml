@@ -61,8 +61,9 @@
     <string name="info_system_version">Phiên bản hệ thống</string>
     <string name="info_device">Thiết bị</string>
     <string name="info_system_abi">Hệ thống ABI</string>
-    <string name="info_api">Giao diện nhúng</string>
     <string name="info_dex2oat_wrapper">Trình tối ưu Dex Wrapper</string>
+    <string name="enabled">Đã kích hoạt</string>
+    <string name="not_enabled">Không được kích hoạt</string>
     <string name="supported">Được hỗ trợ</string>
     <string name="unsupported">Không được hỗ trợ</string>
     <string name="android_version_unsatisfied">Phiên bản Android không hỗ trợ</string>
@@ -70,12 +71,16 @@
     <string name="mount_failed">Gắn kết không thành công</string>
     <string name="selinux_permissive">SELinux tình trạng dễ dãi</string>
     <string name="sepolicy_incorrect">Chính sách SELinux không chính xác</string>
-    <string name="parasitic_recommend">Quản lý ký sinh khuyến nghị</string>
-    <string name="parasitic_recommend_summary">LSPosed giờ đã hỗ trợ hệ thống ký sinh để tránh bị phát hiện. Bạn có thể thoải mái gỡ bỏ trình quản lý nếu đã có lối tắt của trình quản lý ký sinh. Trong bất cứ điều gì ngoài mong muốn bạn vẫn có thể cài đặt lại nó ở đường dẫn /data/adb/lspd/manager.apk.</string>
-    <string name="create_shortcut">Tạo lối tắt</string>
-    <string name="never_show">Không hiện nữa</string>
     <string name="update_lsposed">Cập nhật LSPosed</string>
     <string name="update_lsposed_msg">Xác nhận để cập nhật LSPosed? Thiết bị sẽ khởi động lại sau khi cập nhật hoàn tất</string>
+    <!-- WelcomeDialog -->
+    <string name="parasitic_welcome">Chào mừng đến với LSPosed</string>
+    <string name="parasitic_welcome_summary">Bạn đang sử dụng trình quản lý ký sinh, có thể tạo lối tắt hoặc mở từ thông báo.</string>
+    <string name="parasitic_welcome_summary_no_shortcut_support">Bạn đang sử dụng trình quản lý ký sinh, có thể tạo lối tắt hoặc mở từ thông báo.</string>
+    <string name="create_shortcut">Tạo lối tắt</string>
+    <string name="never_show">Không hiện nữa</string>
+    <string name="app_welcome">Quản lý ký sinh khuyến nghị</string>
+    <string name="app_welcome_summary">LSPosed giờ đã hỗ trợ ký sinh hệ thống để tránh bị phát hiện, bạn có thể mở trình quản lý ký sinh từ thông báo. Bạn nên gỡ cài đặt ứng dụng hiện tại.</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Lưu lại</string>
     <string name="nav_item_logs_verbose">Nhật ký Chi tiết</string>
@@ -158,7 +163,8 @@
     <string name="list_empty">¯\\\\_(ツ)_\/¯\nKhông có gì ở đây cả</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Framework</string>
-    <string name="pref_title_disable_verbose_log">Vô hiệu hoá nhật ký chi tiết</string>
+    <string name="settings_disable_verbose_log">Vô hiệu hoá nhật ký chi tiết</string>
+    <string name="settings_disable_verbose_log_summary">Báo cáo sự cố có yêu cầu bao gồm thêm nhật ký chi tiết</string>
     <string name="pure_black_dark_theme">Chủ đề Đen - Tối</string>
     <string name="pure_black_dark_theme_summary">Sử dụng chủ đề đen nếu chủ đề tối được bật</string>
     <string name="settings_group_theme">Chủ đề</string>
@@ -182,15 +188,17 @@
     <string name="settings_translation_contributors">Cộng tác viên phiên dịch</string>
     <string name="settings_translation">Tham gia phiên dịch</string>
     <string name="settings_translation_summary">Giúp chúng tôi dịch %s sang ngôn ngữ của bạn</string>
-    <string name="pref_title_enable_auto_add_shortcut">Tự động thêm một lối tắt</string>
-    <string name="create_shortcut_summary">Tạo lối tắt trình quản lý ký sinh theo cách thủ công</string>
-    <string name="settings_enable_auto_add_shortcut_summary">Sẽ không có lối tắt mới nào được thêm khi vô hiệu trong trình quản lý không cộng sinh</string>
+    <string name="settings_create_shortcut_summary">Tạo lối tắt để có thể mở trình quản lý ký sinh</string>
+    <string name="settings_created_shortcut_summary">Một lối tắt đã được tạo để mở trình quản lý ký sinh</string>
+    <string name="settings_enable_status_notification">Thông báo trạng thái</string>
+    <string name="settings_enable_status_notification_summary">Hiển thị thông báo để có thể mở trình quản lý ký sinh</string>
+    <string name="disable_status_notification_error">Không lối tắt, không thể tắt thông báo</string>
     <string name="settings_update_channel">Kênh cập nhật</string>
     <string name="update_channel_stable">Ổn định</string>
     <string name="update_channel_bate">Thử nghiệm</string>
     <string name="update_channel_nightly">Bản dựng hàng đêm</string>
-    <string name="pref_title_restrict_classloader">Chỉ trình tải lớp mô-đun mới có thể sử dụng Xposed API</string>
-    <string name="pref_summary_restrict_classloader">Điều này có thể phá vỡ một số mô-đun nhưng có lợi cho bảo mật (tính năng thử nghiệm)</string>
+    <string name="settings_xposed_api_call_protection">Bảo vệ kết nối tới Xposed API</string>
+    <string name="settings_xposed_api_call_protection_summary">Chặn các mã mô-đun được tải động sử dụng API Xposed, điều này có thể làm hỏng một số mô-đun nhưng có lợi cho bảo mật (tính năng thử nghiệm)</string>
     <!-- Module Repo -->
     <string name="module_readme">Readme</string>
     <string name="module_releases">Bản phát hành</string>
@@ -208,7 +216,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">Phiên bản của LSPosed framework (%1$d) không trùng khớp với phiên bản quản lý (%2$d). Hãy cài đặt lại LSPosed.</string>
     <string name="manager_crashed">Trình quản lí gặp sự cố</string>
-    <string name="manager_crashed_info">báo cáo đến </string>
     <string name="send_crash_info">Gửi thông tin sự cố</string>
     <string name="crash_info_copied">Đã sao chép thông tin sự cố vào bộ nhớ tạm</string>
     <string name="info_copied">Đã sao chép vào bảng nhớ tạm</string>
@@ -232,4 +239,7 @@
     <string name="color_deep_orange">Cam đậm</string>
     <string name="color_brown">Nâu</string>
     <string name="color_blue_grey">Xanh xám</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="other">%d lượt tải xuống</item>
+    </plurals>
 </resources>

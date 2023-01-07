@@ -63,7 +63,6 @@
     <string name="info_system_version">Süsteemi versioon</string>
     <string name="info_device">Seade</string>
     <string name="info_system_abi">Süsteemi ABI</string>
-    <string name="info_api">Süstimisliides</string>
     <string name="info_dex2oat_wrapper">Dex Optimizer Wrapper</string>
     <string name="supported">Toetatud</string>
     <string name="unsupported">Toetamata</string>
@@ -72,12 +71,11 @@
     <string name="mount_failed">Kinnitus ebaõnnestus</string>
     <string name="selinux_permissive">SELinux on lubav</string>
     <string name="sepolicy_incorrect">SELinux policy on vale</string>
-    <string name="parasitic_recommend">Parasiitide haldur Soovitatav</string>
-    <string name="parasitic_recommend_summary">LSPosed toetab nüüd tuvastamise vältimiseks süsteemi parasiitlust. Pärast parasiidihalduri otsetee edukat loomist saate halduri ohutult eemaldada. Igal juhul saate manageri tagasi paigaldada /data/adb/lspd/manager.apk-st.</string>
-    <string name="create_shortcut">Loo otsetee</string>
-    <string name="never_show">Mitte kunagi ei näidata</string>
     <string name="update_lsposed">LSPosedi uuendamine</string>
     <string name="update_lsposed_msg">Kas kinnitada LSPosed uuendamine? See seade taaskäivitub pärast uuendamise lõpetamist</string>
+    <!-- WelcomeDialog -->
+    <string name="create_shortcut">Loo otsetee</string>
+    <string name="never_show">Mitte kunagi ei näidata</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Salvesta</string>
     <string name="nav_item_logs_verbose">Põhjalikud logid</string>
@@ -160,7 +158,6 @@
     <string name="list_empty">¯\\\\_(ツ)_\/¯\nSiin pole midagi.</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Raamistik</string>
-    <string name="pref_title_disable_verbose_log">Lülita sõnalised logid välja</string>
     <string name="pure_black_dark_theme">Must tume teema</string>
     <string name="pure_black_dark_theme_summary">Kasutage puhast musta teemat, kui tume teema on lubatud.</string>
     <string name="settings_group_theme">Teema</string>
@@ -184,15 +181,10 @@
     <string name="settings_translation_contributors">Tõlkimise toetajad</string>
     <string name="settings_translation">Osalege tõlkimises</string>
     <string name="settings_translation_summary">Aita meil tõlkida %s sinu keelde</string>
-    <string name="pref_title_enable_auto_add_shortcut">Lisa otsetee automaatselt</string>
-    <string name="create_shortcut_summary">Käsitsi luua parasiitide halduri otsetee</string>
-    <string name="settings_enable_auto_add_shortcut_summary">Mitteparasiitide halduris ei lisata uusi otseteid, kui need on keelatud</string>
     <string name="settings_update_channel">Uuenduskanal</string>
     <string name="update_channel_stable">Stabiilne</string>
     <string name="update_channel_bate">Beeta</string>
     <string name="update_channel_nightly">Nightly build</string>
-    <string name="pref_title_restrict_classloader">Ainult moodulite klassilaadija saab kasutada Xposed API-d.</string>
-    <string name="pref_summary_restrict_classloader">See võib rikkuda mõned moodulid, kuid toob kasu turvalisusele (eksperimentaalne funktsioon).</string>
     <!-- Module Repo -->
     <string name="module_readme">Readme</string>
     <string name="module_releases">Väljaanded</string>
@@ -210,7 +202,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">Raamistiku LSPosed versioon (%1$d) ei ole vastavuses haldajaga (%2$d). Palun installige LSPosed uuesti.</string>
     <string name="manager_crashed">Haldur kokku jooksnud</string>
-    <string name="manager_crashed_info">teatada sellest </string>
     <string name="send_crash_info">Saada info õnnetuse kohta</string>
     <string name="crash_info_copied">Kokkupõrke info kopeeritakse lõikelauale</string>
     <string name="info_copied">Kopeeritud lõikelauale</string>
@@ -234,4 +225,8 @@
     <string name="color_deep_orange">Sügavoranž</string>
     <string name="color_brown">Pruun</string>
     <string name="color_blue_grey">Sinine hall</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="one">%d Lae alla</item>
+        <item quantity="other">%d allalaadimine</item>
+    </plurals>
 </resources>

@@ -67,7 +67,6 @@
     <string name="info_system_version">Sistemos versija</string>
     <string name="info_device">Įrenginys</string>
     <string name="info_system_abi">Sistemos ABI</string>
-    <string name="info_api">Injekcijos sąsaja</string>
     <string name="info_dex2oat_wrapper">\"Dex Optimizer Wrapper</string>
     <string name="supported">Palaikomas</string>
     <string name="unsupported">Nepalaikomas</string>
@@ -76,12 +75,11 @@
     <string name="mount_failed">Montavimas nepavyko</string>
     <string name="selinux_permissive">\"SELinux\" yra leidžiamoji</string>
     <string name="sepolicy_incorrect">\"SELinux\" politika yra neteisinga</string>
-    <string name="parasitic_recommend">Rekomenduojama parazitinė vadybininkė</string>
-    <string name="parasitic_recommend_summary">\"LSPosed\" dabar palaiko sistemos parazitavimą siekiant išvengti aptikimo. Sėkmingai sukūrę parazituojančio tvarkytuvo nuorodą, galite saugiai pašalinti tvarkytuvą. Bet kuriuo atveju valdytoją galite vėl įdiegti iš /data/adb/lspd/manager.apk.</string>
-    <string name="create_shortcut">Sukurti nuorodą</string>
-    <string name="never_show">Niekada nerodykite</string>
     <string name="update_lsposed">Atnaujinti LSPosed</string>
     <string name="update_lsposed_msg">Patvirtinkite, kad atnaujintumėte LSPosed? Baigus atnaujinimą šis prietaisas bus perkrautas</string>
+    <!-- WelcomeDialog -->
+    <string name="create_shortcut">Sukurti nuorodą</string>
+    <string name="never_show">Niekada nerodykite</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Išsaugoti</string>
     <string name="nav_item_logs_verbose">Žurnalai su verbaline informacija</string>
@@ -164,7 +162,6 @@
     <string name="list_empty">\\\\_(ツ)_\/¯\nČia nieko nėra</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Sistema</string>
-    <string name="pref_title_disable_verbose_log">Išjungti verbalinius žurnalus</string>
     <string name="pure_black_dark_theme">Juoda tamsi tema</string>
     <string name="pure_black_dark_theme_summary">Naudokite grynai juodą temą, jei įjungta tamsi tema</string>
     <string name="settings_group_theme">Tema</string>
@@ -188,15 +185,10 @@
     <string name="settings_translation_contributors">Vertimo paslaugų teikėjai</string>
     <string name="settings_translation">Dalyvaukite vertimo procese</string>
     <string name="settings_translation_summary">Padėkite mums išversti %s į savo kalbą</string>
-    <string name="pref_title_enable_auto_add_shortcut">Automatiškai pridėkite nuorodą</string>
-    <string name="create_shortcut_summary">Rankiniu būdu sukurkite parazitinio tvarkytuvo nuorodą</string>
-    <string name="settings_enable_auto_add_shortcut_summary">Neparazitiniame tvarkytuve išjungus spartųjį klavišą, naujų spartieji klavišai nepridedami.</string>
     <string name="settings_update_channel">Atnaujinti kanalą</string>
     <string name="update_channel_stable">Stabilus</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Naktinis kūrimas</string>
-    <string name="pref_title_restrict_classloader">Tik modulio klasių įkroviklis gali naudoti \"Xposed API</string>
-    <string name="pref_summary_restrict_classloader">Tai gali sugadinti kai kuriuos modulius, tačiau bus naudinga saugumui (eksperimentinė funkcija)</string>
     <!-- Module Repo -->
     <string name="module_readme">Readme</string>
     <string name="module_releases">Leidiniai</string>
@@ -214,7 +206,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">LSPosed sistemos versija (%1$d) neatitinka valdytojo (%2$d). Iš naujo įdiekite \"LSPosed\".</string>
     <string name="manager_crashed">Vadybininkas patyrė avariją</string>
-    <string name="manager_crashed_info">praneškite apie tai </string>
     <string name="send_crash_info">Siųsti informaciją apie avariją</string>
     <string name="crash_info_copied">Į iškarpinę nukopijuota informacija apie avariją</string>
     <string name="info_copied">Nukopijuota į iškarpinę</string>
@@ -238,4 +229,10 @@
     <string name="color_deep_orange">Tamsiai oranžinė</string>
     <string name="color_brown">Ruda</string>
     <string name="color_blue_grey">Mėlyna pilka</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="one">%d atsisiųsti</item>
+        <item quantity="few">%d Parsisiųsti</item>
+        <item quantity="many">%d Parsisiųsti</item>
+        <item quantity="other">%d Parsisiųsti</item>
+    </plurals>
 </resources>

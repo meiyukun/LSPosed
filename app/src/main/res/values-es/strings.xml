@@ -63,7 +63,6 @@
     <string name="info_system_version">Versión del sistema</string>
     <string name="info_device">Dispositivo</string>
     <string name="info_system_abi">ABI del Sistema</string>
-    <string name="info_api">Interfaz de inyección</string>
     <string name="info_dex2oat_wrapper">Envoltura del optimizador Dex</string>
     <string name="supported">Apoyado</string>
     <string name="unsupported">No soportado</string>
@@ -72,12 +71,12 @@
     <string name="mount_failed">El montaje falló</string>
     <string name="selinux_permissive">SELinux es permisivo</string>
     <string name="sepolicy_incorrect">La política de SELinux es incorrecta</string>
-    <string name="parasitic_recommend">Se recomienda Parasitic Manager</string>
-    <string name="parasitic_recommend_summary">LSPosed ahora soporta la parasitización del sistema para evitar ser detectado. Puede desinstalar el Manager de forma segura después de crear con éxito un acceso directo al Parasitic Manager. En cualquier caso, puedes instalar el Manager desde /data/adb/lspd/manager.apk.</string>
-    <string name="create_shortcut">Crear acceso directo</string>
-    <string name="never_show">Nunca mostrar</string>
     <string name="update_lsposed">Actualizar LSPosed</string>
     <string name="update_lsposed_msg">¿Confirmar para actualizar LSPose? Este dispositivo se reiniciará después de completar la actualización</string>
+    <!-- WelcomeDialog -->
+    <string name="create_shortcut">Crear acceso directo</string>
+    <string name="never_show">Nunca mostrar</string>
+    <string name="app_welcome">Se recomienda Parasitic Manager</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Guardar</string>
     <string name="nav_item_logs_verbose">Registros detallados</string>
@@ -160,7 +159,7 @@
     <string name="list_empty">¯\\\\_(ツ)_\/¯\nNo hay nada por aquí</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Framework</string>
-    <string name="pref_title_disable_verbose_log">Desactivar registros detallados</string>
+    <string name="settings_disable_verbose_log">Desactivar registros detallados</string>
     <string name="pure_black_dark_theme">Tema negro oscuro</string>
     <string name="pure_black_dark_theme_summary">Usar el tema negro puro si el tema oscuro está activado</string>
     <string name="settings_group_theme">Tema</string>
@@ -184,15 +183,10 @@
     <string name="settings_translation_contributors">Colaboradores de traducción</string>
     <string name="settings_translation">Participar en la traducción</string>
     <string name="settings_translation_summary">Ayúdanos a traducir %s a tu idioma</string>
-    <string name="pref_title_enable_auto_add_shortcut">Añadir automáticamente un acceso directo</string>
-    <string name="create_shortcut_summary">Crear manualmente el acceso directo al gestor de parásitos</string>
-    <string name="settings_enable_auto_add_shortcut_summary">No se añadirán nuevos atajos cuando estén desactivados en el gestor no parasítico</string>
     <string name="settings_update_channel">Actualizar canal</string>
     <string name="update_channel_stable">Estable</string>
     <string name="update_channel_bate">Beta</string>
     <string name="update_channel_nightly">Construcción nocturna</string>
-    <string name="pref_title_restrict_classloader">Sólo el módulo classloader puede utilizar la API Xposed</string>
-    <string name="pref_summary_restrict_classloader">Esto puede romper algunos módulos pero beneficia la seguridad (característica experimental)</string>
     <!-- Module Repo -->
     <string name="module_readme">Léeme</string>
     <string name="module_releases">Versiones</string>
@@ -210,7 +204,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">La versión del framework LSPosed (%1$d) no coincide con el administrador (%2$d). Por favor, reinstale LSPosed.</string>
     <string name="manager_crashed">El Manager se ha crasheado</string>
-    <string name="manager_crashed_info">reportar esto a </string>
     <string name="send_crash_info">Enviar información de error</string>
     <string name="crash_info_copied">Información del error copiada al portapapeles</string>
     <string name="info_copied">Información copiada al portapapeles</string>
@@ -234,4 +227,8 @@
     <string name="color_deep_orange">Naranja oscuro</string>
     <string name="color_brown">Marrón</string>
     <string name="color_blue_grey">Gris azul</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="one">%d descargar</item>
+        <item quantity="other">%d descargas</item>
+    </plurals>
 </resources>

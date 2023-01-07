@@ -19,9 +19,9 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:keep="@string/xposed_module_updated_notification_*,@string/module_is_not_activated_*">
     <!-- MainActivity -->
-    <string name="info">Информация</string>
-    <string name="overview">Преглед</string>
-    <string name="Modules">Модули</string>
+    <string name="info">معلومات</string>
+    <string name="overview">نظرة عامة</string>
+    <string name="Modules">الوحدات</string>
     <plurals name="modules_enabled_count">
         <item quantity="one">%d модулът е активиран</item>
         <item quantity="other">%d включени модули</item>
@@ -29,7 +29,7 @@
     <string name="Logs">Дневници</string>
     <string name="Settings">Настройки</string>
     <string name="feedback_or_suggestion">Обратна връзка или предложение</string>
-    <string name="About">За</string>
+    <string name="About">За нас</string>
     <string name="report_issue">Докладване на проблем</string>
     <string name="module_repo">Хранилище</string>
     <string name="module_repo_loading">Зареждане…</string>
@@ -37,13 +37,13 @@
     <string name="module_repo_published_time">Публикувано в %s</string>
     <string name="module_repo_updated_time">Акттуализиран на %s</string>
     <plurals name="module_repo_upgradable">
-        <item quantity="one">%d модул за надграждане</item>
-        <item quantity="other">%d модули, които могат да се надграждат</item>
+        <item quantity="one">%d модула има актуализация</item>
+        <item quantity="other">%d модули с актуализации</item>
     </plurals>
     <string name="about_view_source_code"><![CDATA[Преглед на изходния код в %1$s<br/>Присъединете се към нашия %2$s канал]]></string>
-    <string name="translators" comment="Dear translators, please add your home page here following the format. There can be more than one translator. So feel free to append yourself.">Светлин Карагеоргиев</string>
+    <string name="translators" comment="Dear translators, please add your home page here following the format. There can be more than one translator. So feel free to append yourself.">невалидно</string>
     <string name="install">Инсталиране на</string>
-    <string name="install_summary">Докоснете, за да инсталирате LSPosed</string>
+    <string name="install_summary">Натиснете, за да инсталирате LSPosed</string>
     <string name="not_installed">Не е инсталиран</string>
     <string name="not_install_summary">LSPosed не е инсталиран</string>
     <string name="activated">Активиран</string>
@@ -52,7 +52,7 @@
     <string name="selinux_policy_not_loaded"><![CDATA[Модулите, които закачат System Framework, няма да работят.<br/>Моля, докладвайте това на <a href="https://github.com/topjohnwu/Magisk/issues"><b>Magisk</b></a> разработчика.]]></string>
     <string name="system_inject_fail_summary">Неуспешно инжектиране на системната рамка</string>
     <string name="system_inject_fail"><![CDATA[Това се случва рядко и може да е причинено от <b>Magisk</b> или някои нискокачествени модули на Magisk.<br/>Моля, опитайте се да деактивирате модулите на Magisk, различни от Riru и LSPosed, или изпратете пълен журнал на разработчиците.]]></string>
-    <string name="system_prop_incorrect_summary">Неправилна опора на системата</string>
+    <string name="system_prop_incorrect_summary">Неправилна стойност на системата</string>
     <string name="system_prop_incorrect"><![CDATA[Някои необходими системни свойства са изтрити или променени.<br/>Понякога модулите могат да се обезсилват.]]></string>
     <string name="need_update">Необходимо е да се актуализира</string>
     <string name="please_update_summary">Моля, инсталирайте най-новата версия на LSPosed</string>
@@ -63,7 +63,6 @@
     <string name="info_system_version">Версия на системата</string>
     <string name="info_device">Устройство</string>
     <string name="info_system_abi">ABI на системата</string>
-    <string name="info_api">Интерфейс за впръскване</string>
     <string name="info_dex2oat_wrapper">Обвивка на Dex Optimizer</string>
     <string name="supported">Поддържан</string>
     <string name="unsupported">Неподдържан</string>
@@ -72,12 +71,11 @@
     <string name="mount_failed">Монтирането е неуспешно</string>
     <string name="selinux_permissive">SELinux е разрешаващ</string>
     <string name="sepolicy_incorrect">Политиката на SELinux е неправилна</string>
-    <string name="parasitic_recommend">Препоръчва се паразитен мениджър</string>
-    <string name="parasitic_recommend_summary">LSPosed вече поддържа паразитиране на системата, за да се избегне откриване. Можете безопасно да деинсталирате мениджъра след успешно създаване на пряк път на паразитния мениджър. Във всеки случай можете да инсталирате обратно мениджъра от /data/adb/lspd/manager.apk.</string>
-    <string name="create_shortcut">Създаване на пряк път</string>
-    <string name="never_show">Никога не показвайте</string>
     <string name="update_lsposed">Актуализиране на LSPosed</string>
     <string name="update_lsposed_msg">Потвърждаване на актуализацията на LSPosed? Това устройство ще се рестартира след завършване на актуализацията</string>
+    <!-- WelcomeDialog -->
+    <string name="create_shortcut">Създаване на пряк път</string>
+    <string name="never_show">Никога не показвайте</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Запазете</string>
     <string name="nav_item_logs_verbose">Условни дневници</string>
@@ -160,7 +158,6 @@
     <string name="list_empty">¯\\\\_(ツ)_\/¯\nНищо тук</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Рамка</string>
-    <string name="pref_title_disable_verbose_log">Деактивиране на подробните дневници</string>
     <string name="pure_black_dark_theme">Черна тъмна тема</string>
     <string name="pure_black_dark_theme_summary">Използвайте чисто черната тема, ако е активирана тъмна тема</string>
     <string name="settings_group_theme">Тема</string>
@@ -184,15 +181,10 @@
     <string name="settings_translation_contributors">Преводачи, които допринасят за превода</string>
     <string name="settings_translation">Участие в превод</string>
     <string name="settings_translation_summary">Помогнете ни да преведем %s на вашия език</string>
-    <string name="pref_title_enable_auto_add_shortcut">Автоматично добавяне на пряк път</string>
-    <string name="create_shortcut_summary">Ръчно създаване на пряк път към паразитен мениджър</string>
-    <string name="settings_enable_auto_add_shortcut_summary">Не се добавят нови преки пътища, когато са деактивирани в непаразитния мениджър.</string>
     <string name="settings_update_channel">Актуализиране на канала</string>
     <string name="update_channel_stable">Стабилен</string>
     <string name="update_channel_bate">Бета</string>
     <string name="update_channel_nightly">Нощно изграждане</string>
-    <string name="pref_title_restrict_classloader">Само модулът classloader може да използва Xposed API</string>
-    <string name="pref_summary_restrict_classloader">Това може да наруши работата на някои модули, но да е от полза за сигурността (експериментална функция)</string>
     <!-- Module Repo -->
     <string name="module_readme">Readme</string>
     <string name="module_releases">Освобождава</string>
@@ -210,7 +202,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">Версията на рамката LSPosed (%1$d) не съвпада с тази на мениджъра (%2$d). Моля, преинсталирайте LSPosed.</string>
     <string name="manager_crashed">Мениджърът катастрофира</string>
-    <string name="manager_crashed_info">докладвайте това на </string>
     <string name="send_crash_info">Изпращане на информация за катастрофата</string>
     <string name="crash_info_copied">Информация за катастрофата, копирана в клипборда</string>
     <string name="info_copied">Копиране в клипборда</string>
@@ -234,4 +225,8 @@
     <string name="color_deep_orange">Наситено оранжево</string>
     <string name="color_brown">Кафяв</string>
     <string name="color_blue_grey">Синьо сиво</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="one">%d изтегляне</item>
+        <item quantity="other">%d Изтегляния</item>
+    </plurals>
 </resources>

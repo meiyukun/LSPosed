@@ -61,8 +61,9 @@
     <string name="info_system_version">系統版本</string>
     <string name="info_device">裝置版本</string>
     <string name="info_system_abi">系統架構</string>
-    <string name="info_api">注入介面</string>
     <string name="info_dex2oat_wrapper">Dex 優化器包裝器</string>
+    <string name="enabled">已啟用</string>
+    <string name="not_enabled">未啟用</string>
     <string name="supported">支援</string>
     <string name="unsupported">不支援</string>
     <string name="android_version_unsatisfied">系統版本不受支援</string>
@@ -70,12 +71,15 @@
     <string name="mount_failed">掛載失敗</string>
     <string name="selinux_permissive">SELinux 處於寬容模式</string>
     <string name="sepolicy_incorrect">SELinux 規則異常</string>
-    <string name="parasitic_recommend">推薦使用寄生管理器</string>
-    <string name="parasitic_recommend_summary">LSPosed 現在支援系統寄生以繞過偵測。您可以在成功建立寄生管理器圖示後從系統設定中移除 LSPosed 管理器。您隨時可以從 /data/adb/lspd/manager.apk 重新安裝管理器。</string>
-    <string name="create_shortcut">建立捷徑</string>
-    <string name="never_show">不再顯示</string>
     <string name="update_lsposed">更新 LSPosed</string>
     <string name="update_lsposed_msg">確定要更新LSPosed嗎？更新完成後將會重啟裝置</string>
+    <!-- WelcomeDialog -->
+    <string name="parasitic_welcome">歡迎使用 LSPosed</string>
+    <string name="parasitic_welcome_summary">您正在使用寄生管理員，您可以建立捷徑或從通知開啟。</string>
+    <string name="create_shortcut">建立捷徑</string>
+    <string name="never_show">不再顯示</string>
+    <string name="app_welcome">建議使用寄生管理員</string>
+    <string name="app_welcome_summary">LSPosed 現在支援系統寄生以避免偵測，您可以從通知開啟寄生管理員。建議解除安裝目前應用程式。</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">儲存</string>
     <string name="nav_item_logs_verbose">詳細日誌</string>
@@ -158,7 +162,8 @@
     <string name="list_empty">¯\_(ツ)_/¯\n空空如也</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">框架</string>
-    <string name="pref_title_disable_verbose_log">停用詳細日誌</string>
+    <string name="settings_disable_verbose_log">停用詳細日誌</string>
+    <string name="settings_disable_verbose_log_summary">回報問題要求包含詳細日誌</string>
     <string name="pure_black_dark_theme">黑色主題</string>
     <string name="pure_black_dark_theme_summary">當深色主題啟用時使用純黑色主題</string>
     <string name="settings_group_theme">主題</string>
@@ -182,15 +187,17 @@
     <string name="settings_translation_contributors">譯者</string>
     <string name="settings_translation">參與翻譯</string>
     <string name="settings_translation_summary">幫助我們翻譯 %s 到您的語言</string>
-    <string name="pref_title_enable_auto_add_shortcut">自動新增捷徑</string>
-    <string name="create_shortcut_summary">手動建立寄生管理器捷徑</string>
-    <string name="settings_enable_auto_add_shortcut_summary">在非寄生的管理器中停用後將不會新增捷徑</string>
+    <string name="settings_create_shortcut_summary">建立可以開啟寄生管理員的捷徑</string>
+    <string name="settings_created_shortcut_summary">已建立可以開啟寄生管理員的捷徑</string>
+    <string name="settings_enable_status_notification">狀態通知</string>
+    <string name="settings_enable_status_notification_summary">顯示通知以便開啟寄生管理員</string>
+    <string name="disable_status_notification_error">沒有捷徑，無法停用通知</string>
     <string name="settings_update_channel">更新通道</string>
     <string name="update_channel_stable">穩定版</string>
     <string name="update_channel_bate">測試版</string>
     <string name="update_channel_nightly">每夜構建</string>
-    <string name="pref_title_restrict_classloader">只有模組 classloader 可以使用 Xposed API</string>
-    <string name="pref_summary_restrict_classloader">可能會破壞某些模組的功能，但有利於安全性（實驗性功能）</string>
+    <string name="settings_xposed_api_call_protection">Xposed API 呼叫保護</string>
+    <string name="settings_xposed_api_call_protection_summary">封鎖動態載入的模組代碼以使用 Xposed API，這可能會損毀某些模組但有益於安全性 (實驗性功能)</string>
     <!-- Module Repo -->
     <string name="module_readme">自述檔案</string>
     <string name="module_releases">版本</string>
@@ -208,7 +215,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">LSPosed框架版本 (%1$d) 與管理器 (%2$d) 不匹配，請重新安裝LSPosed。</string>
     <string name="manager_crashed">應用程式出現未知錯誤</string>
-    <string name="manager_crashed_info">回報給 </string>
     <string name="send_crash_info">傳送錯誤日誌</string>
     <string name="crash_info_copied">錯誤日誌已複製到剪貼簿</string>
     <string name="info_copied">已複製到剪貼簿</string>
@@ -232,4 +238,7 @@
     <string name="color_deep_orange">深橙</string>
     <string name="color_brown">棕色</string>
     <string name="color_blue_grey">藍灰</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="other">%d 次下載</item>
+    </plurals>
 </resources>

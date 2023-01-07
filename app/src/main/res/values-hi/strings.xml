@@ -63,8 +63,9 @@
     <string name="info_system_version">सिस्टम संस्करण</string>
     <string name="info_device">उपकरण</string>
     <string name="info_system_abi">सिस्टम एबीआई</string>
-    <string name="info_api">इंजेक्शन इंटरफ़ेस</string>
     <string name="info_dex2oat_wrapper">डेक्स ऑप्टिमाइज़र रैपर</string>
+    <string name="enabled">सक्रिय</string>
+    <string name="not_enabled">निष्क्रिय</string>
     <string name="supported">समर्थित</string>
     <string name="unsupported">असमर्थित</string>
     <string name="android_version_unsatisfied">Android संस्करण असंतुष्ट</string>
@@ -72,12 +73,16 @@
     <string name="mount_failed">माउंट विफल</string>
     <string name="selinux_permissive">SELinux अनुमेय है</string>
     <string name="sepolicy_incorrect">SELinux नीति गलत है</string>
-    <string name="parasitic_recommend">परजीवी प्रबंधक अनुशंसित</string>
-    <string name="parasitic_recommend_summary">LSPosed अब पता लगाने से बचने के लिए सिस्टम परजीवीकरण का समर्थन करता है। परजीवी प्रबंधक का शॉर्टकट सफलतापूर्वक बनाने के बाद आप प्रबंधक को सुरक्षित रूप से अनइंस्टॉल कर सकते हैं। किसी भी स्थिति में आप प्रबंधक को /data/adb/lspd/manager.apk से वापस स्थापित कर सकते हैं।</string>
-    <string name="create_shortcut">शॉर्टकट बनाएं</string>
-    <string name="never_show">कभी भी न दिखाओ</string>
     <string name="update_lsposed">अद्यतन LSPosed</string>
     <string name="update_lsposed_msg">LSPosed को अपडेट करने की पुष्टि करें? अपडेट पूरा होने के बाद यह डिवाइस रीबूट हो जाएगा</string>
+    <!-- WelcomeDialog -->
+    <string name="parasitic_welcome">LSPosed में आपका स्वागत है</string>
+    <string name="parasitic_welcome_summary">आप परजीवी प्रबंधक का उपयोग कर रहे हैं, जो शॉर्टकट बना सकता है या सूचना से अभी भी खुला हो सकता है।</string>
+    <string name="parasitic_welcome_summary_no_shortcut_support">आप परजीवी प्रबंधक का उपयोग कर रहे हैं, जो सूचना से खुल सकता है।</string>
+    <string name="create_shortcut">शॉर्टकट बनाएं</string>
+    <string name="never_show">कभी भी न दिखाओ</string>
+    <string name="app_welcome">परजीवी प्रबंधक की सिफारिश की</string>
+    <string name="app_welcome_summary">LSPosed अब पता लगाने से बचने के लिए सिस्टम परजीवीकरण का समर्थन करता है, आप अधिसूचना से परजीवी प्रबंधक खोल सकते हैं। वर्तमान एप्लिकेशन को अनइंस्टॉल करने की अनुशंसा की जाती है।</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">बचाना</string>
     <string name="nav_item_logs_verbose">वर्बोज़ लॉग्स</string>
@@ -160,7 +165,6 @@
     <string name="list_empty">¯\\\\_(ツ)_\/¯\nयहाँ कुछ भी नहीं</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">रूपरेखा</string>
-    <string name="pref_title_disable_verbose_log">वर्बोज़ लॉग अक्षम करें</string>
     <string name="pure_black_dark_theme">ब्लैक डार्क थीम</string>
     <string name="pure_black_dark_theme_summary">यदि डार्क थीम सक्षम है तो शुद्ध काली थीम का उपयोग करें</string>
     <string name="settings_group_theme">थीम</string>
@@ -184,15 +188,10 @@
     <string name="settings_translation_contributors">अनुवाद योगदानकर्ता</string>
     <string name="settings_translation">अनुवाद में भाग लें</string>
     <string name="settings_translation_summary">%s को अपनी भाषा में अनुवाद करने में हमारी सहायता करें</string>
-    <string name="pref_title_enable_auto_add_shortcut">स्वचालित रूप से एक शॉर्टकट जोड़ें</string>
-    <string name="create_shortcut_summary">मैन्युअल रूप से परजीवी प्रबंधक शॉर्टकट बनाएं</string>
-    <string name="settings_enable_auto_add_shortcut_summary">गैर-परजीवी प्रबंधक में अक्षम होने पर कोई नया शॉर्टकट नहीं जोड़ा जाएगा</string>
     <string name="settings_update_channel">चैनल अपडेट करें</string>
     <string name="update_channel_stable">स्थिर</string>
     <string name="update_channel_bate">बीटा</string>
     <string name="update_channel_nightly">सॉफ़्टवेयर की स्थिरता</string>
-    <string name="pref_title_restrict_classloader">केवल मॉड्यूल क्लासलोडर Xposed API का उपयोग कर सकता है</string>
-    <string name="pref_summary_restrict_classloader">यह कुछ मॉड्यूल को तोड़ सकता है लेकिन सुरक्षा को लाभ देता है (प्रायोगिक सुविधा)</string>
     <!-- Module Repo -->
     <string name="module_readme">रीडमी</string>
     <string name="module_releases">विज्ञप्ति</string>
@@ -210,7 +209,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">LSPosed ढांचे का संस्करण (%1$d) प्रबंधक से मेल नहीं खाता (%2$d)। कृपया LSPosed को पुन: स्थापित करें।</string>
     <string name="manager_crashed">प्रबंधक दुर्घटनाग्रस्त</string>
-    <string name="manager_crashed_info">इसकी रिपोर्ट करें </string>
     <string name="send_crash_info">क्रैश की जानकारी भेजें</string>
     <string name="crash_info_copied">क्रैश जानकारी को क्लिपबोर्ड पर कॉपी किया गया</string>
     <string name="info_copied">क्लिपबोर्ड पर नकल</string>
@@ -234,4 +232,8 @@
     <string name="color_deep_orange">गहरा नारंगी</string>
     <string name="color_brown">भूरा</string>
     <string name="color_blue_grey">नीला ग्रे</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="one">%d डाउनलोड</item>
+        <item quantity="other">%d डाउनलोड</item>
+    </plurals>
 </resources>

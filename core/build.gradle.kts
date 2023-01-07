@@ -18,6 +18,8 @@
  */
 
 val apiCode: Int by rootProject.extra
+val verName: String by rootProject.extra
+val verCode: Int by rootProject.extra
 
 plugins {
     id("com.android.library")
@@ -43,11 +45,17 @@ android {
         }
     }
 }
+copy {
+    from("src/main/jni/template/") {
+        expand("VERSION_CODE" to "$verCode", "VERSION_NAME" to verName)
+    }
+    into("src/main/jni/src/")
+}
 
 dependencies {
     implementation("org.apache.commons:commons-lang3:3.12.0")
     implementation("de.upb.cs.swt:axml:2.1.3")
-    compileOnly("androidx.annotation:annotation:1.4.0")
+    compileOnly("androidx.annotation:annotation:1.5.0")
     compileOnly(projects.hiddenapi.stubs)
     implementation(projects.hiddenapi.bridge)
     implementation(projects.services.daemonService)

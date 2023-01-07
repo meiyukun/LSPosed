@@ -55,7 +55,7 @@
                 android:layout_height="?actionBarSize"
                 android:elevation="0dp"
                 app:layout_collapseMode="pin"
-                app:logo="@drawable/ic_launcher"
+                app:logo="@drawable/ic_launcher_round"
                 app:titleMarginStart="@dimen/m3_alert_dialog_icon_margin" />
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -244,7 +244,7 @@
                             style="@style/DeviceInfoDialogLabel"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/info_api" />
+                            android:text="@string/settings_xposed_api_call_protection" />
 
                         <com.google.android.material.textview.MaterialTextView
                             android:id="@+id/api"

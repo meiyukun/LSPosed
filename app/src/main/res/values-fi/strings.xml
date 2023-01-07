@@ -41,6 +41,7 @@
         <item quantity="other">%d moduulia päivitettävissä</item>
     </plurals>
     <string name="about_view_source_code"><![CDATA[Näytä lähdekoodi %1$s<br/>Liity kanavaamme %2$s]]></string>
+    <string name="translators" comment="Dear translators, please add your home page here following the format. There can be more than one translator. So feel free to append yourself.">null</string>
     <string name="install">Asenna</string>
     <string name="install_summary">Napauta asentaaksesi LSPosed</string>
     <string name="not_installed">Ei asennettu</string>
@@ -62,7 +63,6 @@
     <string name="info_system_version">Järjestelmän versio</string>
     <string name="info_device">Laite</string>
     <string name="info_system_abi">Järjestelmä ABI</string>
-    <string name="info_api">Pistoksen Käyttöliittymä</string>
     <string name="info_dex2oat_wrapper">Dex Optimizer Wrapper</string>
     <string name="supported">Tuettu</string>
     <string name="unsupported">Ei tuettu</string>
@@ -71,12 +71,11 @@
     <string name="mount_failed">Kiinnitys epäonnistui</string>
     <string name="selinux_permissive">SELinux on salliva</string>
     <string name="sepolicy_incorrect">SELinux-käytäntö on virheellinen</string>
-    <string name="parasitic_recommend">Suositeltu Loistava Johtaja</string>
-    <string name="parasitic_recommend_summary">LSPosed tukee nyt järjestelmän parasitization välttää havaitsemista. Voit turvallisesti poistaa managerin kun onnistuneesti luoda pikakuvake loishallintaan. Joka tapauksessa voit asentaa hallintaohjelman takaisin osoitteesta /data/adb/lspd/manager.apk.</string>
-    <string name="create_shortcut">Luo pikakuvake</string>
-    <string name="never_show">Älä näytä koskaan</string>
     <string name="update_lsposed">Päivitys LSPostettu</string>
     <string name="update_lsposed_msg">Vahvista LSPost-päivitys? Tämä laite käynnistyy uudelleen päivityksen jälkeen</string>
+    <!-- WelcomeDialog -->
+    <string name="create_shortcut">Luo pikakuvake</string>
+    <string name="never_show">Älä näytä koskaan</string>
     <!-- LogsActivity -->
     <string name="menuSaveToSd">Tallenna</string>
     <string name="nav_item_logs_verbose">Verbose Lokit</string>
@@ -159,7 +158,6 @@
     <string name="list_empty">¶ \\\\_(konferenssissa)_\/ ¶\nEi mitään tässä</string>
     <!-- SettingsActivity -->
     <string name="settings_group_framework">Framework</string>
-    <string name="pref_title_disable_verbose_log">Poista verbose lokit käytöstä</string>
     <string name="pure_black_dark_theme">Musta tumma teema</string>
     <string name="pure_black_dark_theme_summary">Käytä puhdas musta teema, jos tumma teema on käytössä</string>
     <string name="settings_group_theme">Teema</string>
@@ -183,15 +181,10 @@
     <string name="settings_translation_contributors">Käännöksen osallistujat</string>
     <string name="settings_translation">Osallistu käännökseen</string>
     <string name="settings_translation_summary">Auta meitä kääntämään %s kielellesi</string>
-    <string name="pref_title_enable_auto_add_shortcut">Lisää pikakuvake automaattisesti</string>
-    <string name="create_shortcut_summary">Luo manuaalisesti parasiittisen managerin pikakuvake</string>
-    <string name="settings_enable_auto_add_shortcut_summary">Uusia pikakuvakkeita ei lisätä, kun ne on poistettu käytöstä ei-loishallinnassa</string>
     <string name="settings_update_channel">Päivitä kanava</string>
     <string name="update_channel_stable">Vakaa</string>
     <string name="update_channel_bate">Beeta</string>
     <string name="update_channel_nightly">Yöllinen rakentaminen</string>
-    <string name="pref_title_restrict_classloader">Vain moduulin luokkienlataaja voi käyttää Xposed API:ta.</string>
-    <string name="pref_summary_restrict_classloader">Tämä saattaa rikkoa joitakin moduuleja, mutta hyödyttää turvallisuutta (kokeellinen ominaisuus).</string>
     <!-- Module Repo -->
     <string name="module_readme">Luennot</string>
     <string name="module_releases">Julkaisut</string>
@@ -209,7 +202,6 @@
     <!-- CrashReportActivity -->
     <string name="version_mismatch">LSPosed framework (%1$d) versio ei vastaa manageria (%2$d). Asenna LSPosed uudelleen.</string>
     <string name="manager_crashed">Hallinta kaatui</string>
-    <string name="manager_crashed_info">raportoi tästä </string>
     <string name="send_crash_info">Lähetä kaatumistiedot</string>
     <string name="crash_info_copied">Kaatumistiedot kopioitu leikepöydälle</string>
     <string name="info_copied">Kopioitu leikepöydälle</string>
@@ -233,4 +225,8 @@
     <string name="color_deep_orange">Syvä oranssi</string>
     <string name="color_brown">Ruskea</string>
     <string name="color_blue_grey">Sininen harmaa</string>
+    <plurals name="module_release_assets_download_count">
+        <item quantity="one">%d lataa</item>
+        <item quantity="other">%d lataukset</item>
+    </plurals>
 </resources>
