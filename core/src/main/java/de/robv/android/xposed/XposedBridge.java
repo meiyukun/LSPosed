@@ -209,8 +209,6 @@ public final class XposedBridge {
             throw new IllegalArgumentException("Only methods and constructors can be hooked: " + hookMethod);
         } else if (Modifier.isAbstract(hookMethod.getModifiers())) {
             throw new IllegalArgumentException("Cannot hook abstract methods: " + hookMethod);
-        } else if (hookMethod.getDeclaringClass().getClassLoader() == XposedBridge.class.getClassLoader()) {
-            throw new IllegalArgumentException("Do not allow hooking inner methods");
         } else if (hookMethod.getDeclaringClass() == Method.class && hookMethod.getName().equals("invoke")) {
             throw new IllegalArgumentException("Cannot hook Method.invoke");
         }
