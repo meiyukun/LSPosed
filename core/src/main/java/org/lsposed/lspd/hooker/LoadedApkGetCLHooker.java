@@ -110,7 +110,7 @@ public class LoadedApkGetCLHooker extends XC_MethodHook {
             lpparam.isFirstApplication = isFirstPackage;
 
             hookNewXSP(lpparam);
-
+            unhook.unhook();
             Hookers.logD("Call handleLoadedPackage: packageName=" + lpparam.packageName + " processName=" + lpparam.processName + " isFirstPackage=" + isFirstPackage + " classLoader=" + lpparam.classLoader + " appInfo=" + lpparam.appInfo);
             XC_LoadPackage.callAll(lpparam);
 
