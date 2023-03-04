@@ -60,7 +60,7 @@ public final class XposedBridge {
     /**
      * @hide
      */
-    public static final String TAG = "LSPosed-Bridge";
+    public static final String TAG = "LSPosed-Bridge-BugHook";
 
     /**
      * @deprecated Use {@link #getXposedVersion()} instead.
@@ -157,7 +157,7 @@ public final class XposedBridge {
      * @param text The log message.
      */
     public synchronized static void log(String text) {
-        Log.i(TAG, text);
+        Log.e(TAG, text);
     }
 
     /**
