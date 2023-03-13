@@ -120,6 +120,7 @@ public class LoadedApkGetCLHooker extends XC_MethodHook {
             }
 
             Hookers.logD("Call handleLoadedPackage: packageName=" + lpparam.packageName + " processName=" + lpparam.processName + " isFirstPackage=" + isFirstPackage + " classLoader=" + lpparam.classLoader + " appInfo=" + lpparam.appInfo);
+            unhook.unhook();
             XC_LoadPackage.callAll(lpparam);
 
             LSPosedContext.callOnPackageLoaded(new XposedModuleInterface.PackageLoadedParam() {
