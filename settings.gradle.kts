@@ -63,7 +63,7 @@ dependencyResolutionManagement {
             library("androidx-browser", "androidx.browser:browser:1.5.0")
             library("androidx-constraintlayout", "androidx.constraintlayout:constraintlayout:2.1.4")
             library("androidx-core", "androidx.core:core:1.9.0")
-            library("androidx-fragment", "androidx.fragment:fragment:1.5.5")
+            library("androidx-fragment", "androidx.fragment:fragment:1.5.6")
             library("androidx-navigation-fragment", "androidx.navigation", "navigation-fragment").versionRef(navVersion)
             library("androidx-navigation-ui", "androidx.navigation", "navigation-ui").versionRef(navVersion)
             library("androidx-preference", "androidx.preference:preference:1.2.0")
