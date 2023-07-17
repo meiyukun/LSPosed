@@ -107,7 +107,6 @@ public class ShortcutUtil {
     @SuppressLint("InlinedApi")
     private static IntentSender registerReceiver(Context context, Runnable task) {
         if (task == null) return null;
-
         var uuid = UUID.randomUUID().toString();
         var filter = new IntentFilter(uuid);
         var permission = "android.permission.CREATE_USERS";
@@ -169,14 +168,12 @@ public class ShortcutUtil {
     public static boolean isLaunchShortcutPinned() {
         var context = App.getInstance();
         var sm = context.getSystemService(ShortcutManager.class);
-        boolean pinned = false;
         for (var info : sm.getPinnedShortcuts()) {
             if (SHORTCUT_ID.equals(info.getId())) {
-                pinned = true;
-                break;
+                return true;
             }
         }
-        return pinned;
+        return false;
     }
 
     public static boolean shouldAllowPinShortcut(Context context) {
@@ -194,6 +191,10 @@ public class ShortcutUtil {
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
         var resolveInfo = context.getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
-        return resolveInfo.activityInfo.packageName;
+        if (resolveInfo != null) {
+            return resolveInfo.activityInfo.packageName;
+        } else {
+            return null;
+        }
     }
 }
